@@ -104,12 +104,12 @@ function DraftCard({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
+    <div className="rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 space-y-3">
       <div className="flex items-center gap-2">
         <Badge variant={edited.transactionType === "INCOME" ? "income" : edited.transactionType === "EXPENSE" ? "expense" : "default"}>
           {edited.transactionType}
         </Badge>
-        <span className="text-xs text-gray-400">{edited.confidence === "high" ? "High confidence" : "Low confidence — verify before saving"}</span>
+        <span className="text-xs text-gray-400 dark:text-slate-500">{edited.confidence === "high" ? "High confidence" : "Low confidence — verify before saving"}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -166,9 +166,9 @@ function MessageBubble({ msg, accounts, onSaved }: { msg: Message; accounts: Acc
       <div className={cn("flex flex-col gap-2 max-w-[80%]", isUser && "items-end")}>
         {/* Image preview */}
         {msg.imageUrl && (
-          <div className="rounded-2xl overflow-hidden border border-gray-200 max-w-sm">
+          <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-600 max-w-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={msg.imageUrl} alt="Uploaded" className="w-full max-h-60 object-contain bg-gray-50" />
+            <img src={msg.imageUrl} alt="Uploaded" className="w-full max-h-60 object-contain bg-gray-50 dark:bg-slate-700" />
           </div>
         )}
 
@@ -179,7 +179,7 @@ function MessageBubble({ msg, accounts, onSaved }: { msg: Message; accounts: Acc
               "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
               isUser
                 ? "bg-primary-600 text-white rounded-br-sm"
-                : "bg-gray-100 text-gray-800 rounded-bl-sm"
+                : "bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-100 rounded-bl-sm"
             )}
           >
             <MessageContent content={msg.content} />
@@ -382,7 +382,7 @@ export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () =>
       </div>
 
       {/* Input area */}
-      <div className="border-t border-gray-100 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2">
+      <div className="border-t border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2">
         {/* Pending image preview */}
         {pendingImageUrl && (
           <div className="relative inline-block">
@@ -401,7 +401,7 @@ export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () =>
           {/* Attach image */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-gray-400 hover:text-primary-600 hover:border-primary-300 transition-colors"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 hover:text-primary-600 hover:border-primary-300 dark:hover:border-primary-500 transition-colors"
             aria-label="Attach image"
           >
             <Paperclip className="h-4 w-4" />
@@ -424,7 +424,7 @@ export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () =>
               onPaste={handlePaste}
               placeholder={pendingImage ? "Describe what you want to do with this image, or just send..." : "Ask about your finances..."}
               rows={1}
-              className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 pr-12 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent max-h-32 overflow-y-auto"
+              className="w-full resize-none rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 pr-12 text-sm text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent max-h-32 overflow-y-auto"
               onInput={(e) => {
                 const t = e.target as HTMLTextAreaElement;
                 t.style.height = "auto";

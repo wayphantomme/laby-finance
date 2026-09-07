@@ -26,7 +26,7 @@ interface Props {
   cashFlow: CashFlowData;
   netWorthHistory: { month: string; netWorth: number }[];
   year: number;
-  asOf: string; // YYYY-MM-DD
+  asOf: string;
 }
 
 export function ReportsClient({ incomeStatement, balanceSheet, cashFlow, netWorthHistory, year, asOf }: Props) {
@@ -62,45 +62,44 @@ export function ReportsClient({ incomeStatement, balanceSheet, cashFlow, netWort
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Financial Reports</h2>
-          <p className="text-sm text-gray-500 opacity-60">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Financial Reports</h2>
+          <p className="text-sm text-gray-500 dark:text-slate-400 opacity-80">
             {isPending ? "Loading..." : `Fiscal year ${year}`}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Year navigator */}
-          <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white overflow-hidden">
+          <div className="flex items-center gap-1 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 overflow-hidden">
             <button
               onClick={() => navigate({ year: year - 1 })}
-              className="p-2 text-gray-500 hover:bg-gray-50 transition-colors"
+              className="p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
               aria-label="Previous year"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="px-2 text-sm font-semibold text-gray-800 min-w-[3.5rem] text-center tabular-nums">
+            <span className="px-2 text-sm font-semibold text-gray-800 dark:text-slate-200 min-w-[3.5rem] text-center tabular-nums">
               {year}
             </span>
             <button
               onClick={() => navigate({ year: year + 1 })}
               disabled={year >= new Date().getFullYear()}
-              className="p-2 text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-30"
+              className="p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-30"
               aria-label="Next year"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Balance sheet date picker (only show on balance tab) */}
           {activeTab === "balance" && (
             <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-400 whitespace-nowrap">As of</label>
+              <label className="text-xs text-gray-400 dark:text-slate-500 whitespace-nowrap">As of</label>
               <input
                 type="date"
                 value={asOf}
                 max={new Date().toISOString().split("T")[0]}
                 onChange={(e) => navigate({ asOf: e.target.value })}
-                className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-600"
+                className="rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-600"
               />
             </div>
           )}
@@ -115,15 +114,15 @@ export function ReportsClient({ incomeStatement, balanceSheet, cashFlow, netWort
       {/* Net worth chart */}
       <Card>
         <div className="mb-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Net Worth Trend</p>
-          <p className="text-sm text-gray-500">12 months of {year}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">Net Worth Trend</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">12 months of {year}</p>
         </div>
         <NetWorthChart data={netWorthHistory} />
       </Card>
 
-      {/* Tab switcher — scrollable on mobile */}
+      {/* Tab switcher */}
       <div className="flex overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:px-0">
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden bg-white text-sm shrink-0">
+        <div className="flex rounded-lg border border-gray-200 dark:border-slate-600 overflow-hidden bg-white dark:bg-slate-800 text-sm shrink-0">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -131,7 +130,7 @@ export function ReportsClient({ incomeStatement, balanceSheet, cashFlow, netWort
               className={`px-4 py-2.5 font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.id
                   ? "bg-primary-600 text-white"
-                  : "text-gray-600 hover:bg-gray-50"
+                  : "text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"
               }`}
             >
               {tab.label}
@@ -151,7 +150,7 @@ export function ReportsClient({ incomeStatement, balanceSheet, cashFlow, netWort
         >
           {!hasAnyData ? (
             <Card>
-              <div className="flex flex-col items-center justify-center h-40 text-sm text-gray-400 gap-2">
+              <div className="flex flex-col items-center justify-center h-40 text-sm text-gray-400 dark:text-slate-500 gap-2">
                 <p>No transactions recorded yet.</p>
                 <p className="text-xs">Add transactions to see your financial statements.</p>
               </div>

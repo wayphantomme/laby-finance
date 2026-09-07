@@ -80,11 +80,11 @@ function H2({ children }: { children: React.ReactNode }) {
 }
 
 function H3({ children }: { children: React.ReactNode }) {
-  return <h3 className="mt-5 mb-2 text-sm font-semibold text-gray-800">{children}</h3>;
+  return <h3 className="mt-5 mb-2 text-sm font-semibold text-gray-800 dark:text-slate-200">{children}</h3>;
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="mb-3 text-sm leading-relaxed text-gray-600">{children}</p>;
+  return <p className="mb-3 text-sm leading-relaxed text-gray-600 dark:text-slate-400">{children}</p>;
 }
 
 function UL({ children }: { children: React.ReactNode }) {
@@ -97,12 +97,12 @@ function OL({ children }: { children: React.ReactNode }) {
 
 function Table({ headers, rows }: { headers: string[]; rows: (string | React.ReactNode)[][] }) {
   return (
-    <div className="mb-4 overflow-x-auto rounded-lg border border-gray-200">
+    <div className="mb-4 overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-600">
       <table className="w-full min-w-max text-sm">
         <thead>
-          <tr className="border-b border-gray-200 bg-gray-50">
+          <tr className="border-b border-gray-200 bg-gray-50 dark:bg-slate-900/50">
             {headers.map((h) => (
-              <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                 {h}
               </th>
             ))}
@@ -134,7 +134,7 @@ function Code({ children }: { children: string }) {
 
 function Badge({ children, color = "gray" }: { children: React.ReactNode; color?: "gray" | "red" | "green" | "blue" | "amber" }) {
   const colors = {
-    gray: "bg-gray-100 text-gray-700",
+    gray: "bg-gray-100 text-gray-700 dark:text-slate-300",
     red: "bg-primary-50 text-primary-700",
     green: "bg-green-50 text-green-700",
     blue: "bg-blue-50 text-blue-700",
@@ -234,12 +234,12 @@ const DOCS: DocGroup[] = [
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{item.phase}</span>
-                      <span className="text-sm font-semibold text-gray-900">{item.label}</span>
+                      <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">{item.label}</span>
                       <Badge color={item.status === "done" ? "green" : "gray"}>
                         {item.status === "done" ? "Selesai" : "Planned"}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-500">{item.desc}</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -395,8 +395,8 @@ const DOCS: DocGroup[] = [
                 { q: "Bagaimana transaksi mata uang asing?", a: "Masukkan nilai yang sudah dikonversi ke IDR dengan kurs saat transaksi. Catat kurs di field deskripsi untuk referensi." },
               ].map(({ q, a }) => (
                 <div key={q} className="rounded-lg border border-gray-100 bg-white p-4">
-                  <p className="mb-1 text-sm font-semibold text-gray-900">{q}</p>
-                  <p className="text-sm text-gray-500">{a}</p>
+                  <p className="mb-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{q}</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">{a}</p>
                 </div>
               ))}
             </div>
@@ -542,16 +542,16 @@ KREDIT 1-103 GoPay (Aset)                       Rp55.000`}</Code>
               },
             ].map(({ group, accounts }) => (
               <div key={group} className="mb-4">
-                <h3 className="mb-2 text-sm font-semibold text-gray-700">{group}</h3>
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-slate-300">{group}</h3>
+                <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-600">
                   <table className="w-full min-w-max text-sm">
                     <tbody>
                       {accounts.map(([code, name, note]) => (
-                        <tr key={code} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                        <tr key={code} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 dark:bg-slate-900/50">
                           <td className="px-4 py-2 w-24">
-                            <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-700">{code}</code>
+                            <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:text-slate-300">{code}</code>
                           </td>
-                          <td className="px-4 py-2 font-medium text-gray-800">{name}</td>
+                          <td className="px-4 py-2 font-medium text-gray-800 dark:text-slate-200">{name}</td>
                           <td className="px-4 py-2 text-gray-400 text-xs">{note}</td>
                         </tr>
                       ))}
@@ -1116,8 +1116,8 @@ PPh Final = 0,5% × 25.000.000 = Rp125.000`}</Code>
                 },
               ].map(({ q, a }) => (
                 <div key={q} className="rounded-lg border border-gray-100 bg-white p-4">
-                  <p className="mb-1 text-sm font-semibold text-gray-900">{q}</p>
-                  <p className="text-sm text-gray-500">{a}</p>
+                  <p className="mb-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{q}</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">{a}</p>
                 </div>
               ))}
             </div>
@@ -1337,9 +1337,9 @@ export function DocsClient() {
   const NavContent = () => (
     <nav className="flex flex-col h-full">
       {/* Search */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-gray-100 dark:border-slate-700">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Cari topik..."
@@ -1350,7 +1350,7 @@ export function DocsClient() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-slate-400"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -1373,15 +1373,15 @@ export function DocsClient() {
                   "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isGroupActive
                     ? "text-primary-700 bg-primary-50"
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-gray-700 hover:bg-gray-100 dark:bg-slate-700"
                 )}
               >
-                <Icon className={cn("h-4 w-4 shrink-0", isGroupActive ? "text-primary-600" : "text-gray-400")} />
+                <Icon className={cn("h-4 w-4 shrink-0", isGroupActive ? "text-primary-600" : "text-gray-400 dark:text-slate-500")} />
                 <span className="flex-1 text-left">{group.label}</span>
                 {isExpanded ? (
-                  <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+                  <ChevronDown className="h-3.5 w-3.5 text-gray-400 dark:text-slate-500" />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+                  <ChevronRight className="h-3.5 w-3.5 text-gray-400 dark:text-slate-500" />
                 )}
               </button>
 
@@ -1406,7 +1406,7 @@ export function DocsClient() {
                               "flex w-full items-center rounded-md px-2.5 py-1.5 text-sm transition-colors text-left",
                               isActive
                                 ? "bg-primary-600 text-white font-medium"
-                                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-100"
                             )}
                           >
                             {section.title}
@@ -1428,8 +1428,8 @@ export function DocsClient() {
     <div className="flex h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4rem)] -m-4 lg:-m-6 overflow-hidden">
       {/* ── Desktop sidebar nav ─────────────────────────────────────────── */}
       <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-gray-200 bg-white overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Documentation</p>
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">Documentation</p>
         </div>
         <NavContent />
       </aside>
@@ -1456,11 +1456,11 @@ export function DocsClient() {
               className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white border-r border-gray-200 lg:hidden"
               style={{ top: "3.5rem" }}
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Documentation</p>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">Documentation</p>
                 <button
                   onClick={() => setMobileNavOpen(false)}
-                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"
+                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:bg-slate-700"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1485,16 +1485,16 @@ export function DocsClient() {
               <span>Menu</span>
             </button>
             <div className="hidden lg:flex items-center gap-1.5 text-sm">
-              <span className="text-gray-400">{currentGroup.label}</span>
-              <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
-              <span className="font-medium text-gray-700">{currentSection.title}</span>
+              <span className="text-gray-400 dark:text-slate-500">{currentGroup.label}</span>
+              <ChevronRight className="h-3.5 w-3.5 text-gray-300 dark:text-slate-600" />
+              <span className="font-medium text-gray-700 dark:text-slate-300">{currentSection.title}</span>
             </div>
           </div>
 
           {/* Breadcrumb on mobile */}
           <div className="flex lg:hidden items-center gap-1.5 text-sm">
             <span className="text-gray-400 text-xs">{currentGroup.label}</span>
-            <ChevronRight className="h-3 w-3 text-gray-300" />
+            <ChevronRight className="h-3 w-3 text-gray-300 dark:text-slate-600" />
             <span className="font-medium text-gray-700 text-xs">{currentSection.title}</span>
           </div>
 
@@ -1522,7 +1522,7 @@ export function DocsClient() {
               className="mx-auto max-w-3xl px-4 py-6 lg:px-8 lg:py-8"
             >
               {/* Section header */}
-              <div className="mb-6 pb-4 border-b border-gray-100">
+              <div className="mb-6 pb-4 border-b border-gray-100 dark:border-slate-700">
                 <div className="mb-1 flex items-center gap-2">
                   {(() => {
                     const Icon = currentGroup.icon;
@@ -1532,14 +1532,14 @@ export function DocsClient() {
                     {currentGroup.label}
                   </span>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">{currentSection.title}</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">{currentSection.title}</h1>
               </div>
 
               {/* Content */}
               <div>{currentSection.content}</div>
 
               {/* Prev/Next navigation */}
-              <div className="mt-10 pt-6 border-t border-gray-100">
+              <div className="mt-10 pt-6 border-t border-gray-100 dark:border-slate-700">
                 <PrevNextNav
                   currentGroup={activeGroup}
                   currentSection={activeSection}
@@ -1591,9 +1591,9 @@ function PrevNextNav({
           onClick={() => onNavigate(prev.groupId, prev.sectionId)}
           className="flex flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-left hover:bg-gray-50 transition-colors"
         >
-          <ChevronRight className="h-4 w-4 shrink-0 rotate-180 text-gray-400" />
+          <ChevronRight className="h-4 w-4 shrink-0 rotate-180 text-gray-400 dark:text-slate-500" />
           <div className="min-w-0">
-            <p className="text-xs text-gray-400">{prev.groupLabel}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">{prev.groupLabel}</p>
             <p className="text-sm font-medium text-gray-800 truncate">{prev.sectionTitle}</p>
           </div>
         </button>
@@ -1606,10 +1606,10 @@ function PrevNextNav({
           className="flex flex-1 items-center justify-end gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-right hover:bg-gray-50 transition-colors"
         >
           <div className="min-w-0">
-            <p className="text-xs text-gray-400">{next.groupLabel}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">{next.groupLabel}</p>
             <p className="text-sm font-medium text-gray-800 truncate">{next.sectionTitle}</p>
           </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-500" />
         </button>
       ) : (
         <div className="flex-1" />

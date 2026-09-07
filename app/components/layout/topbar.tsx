@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { User, Menu, Sun, Moon, Monitor, Languages } from "lucide-react";
+import { User, Menu, Sun, Moon, Languages } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useLocale } from "@/lib/i18n/locale-context";
 import { cn } from "@/lib/utils";
@@ -35,11 +35,10 @@ export function Topbar({ userName, onMenuClick }: { userName?: string | null; on
   const themeOptions = [
     { value: "light", label: "Light", icon: Sun },
     { value: "dark",  label: "Dark",  icon: Moon },
-    { value: "system",label: "System",icon: Monitor },
   ];
 
-  const CurrentThemeIcon = !mounted ? Monitor :
-    theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
+  const CurrentThemeIcon = !mounted ? Sun :
+    theme === "dark" ? Moon : Sun;
 
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 lg:h-16 lg:px-6">
