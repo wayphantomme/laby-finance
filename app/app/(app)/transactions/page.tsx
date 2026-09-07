@@ -21,13 +21,13 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{t.transactions.title}</h2>
-          <p className="text-sm text-gray-500 dark:text-slate-400">{t.transactions.subtitle}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400 hidden sm:block">{t.transactions.subtitle}</p>
         </div>
-        <Button onClick={() => setShowForm((v) => !v)} variant={showForm ? "secondary" : "primary"} size="sm">
-          {showForm ? <><X className="h-4 w-4" />{t.transactions.cancel}</> : <><Plus className="h-4 w-4" />{t.transactions.addTransaction}</>}
+        <Button onClick={() => setShowForm((v) => !v)} variant={showForm ? "secondary" : "primary"} size="sm" className="shrink-0 whitespace-nowrap">
+          {showForm ? <><X className="h-4 w-4" /><span>{t.transactions.cancel}</span></> : <><Plus className="h-4 w-4" /><span>{t.transactions.addTransaction}</span></>}
         </Button>
       </div>
 

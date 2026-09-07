@@ -28,9 +28,9 @@ export function StatCard({ title, valueSen, subtitle, trend = "neutral", index =
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, duration: 0.3 }}
     >
-      <Card>
-        <p className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">{title}</p>
-        <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-slate-100 tabular-nums">
+      <Card className="p-3 sm:p-5">
+        <p className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500 truncate">{title}</p>
+        <p className="mt-1.5 text-base sm:text-2xl font-semibold text-gray-900 dark:text-slate-100 tabular-nums break-all">
           {formatRupiah(Math.abs(valueSen))}
         </p>
         {subtitle && (
