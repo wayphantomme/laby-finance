@@ -76,7 +76,7 @@ function Check({ children }: { children: React.ReactNode }) {
 }
 
 function H2({ children }: { children: React.ReactNode }) {
-  return <h2 className="mt-8 mb-3 text-base font-semibold text-gray-900 first:mt-0">{children}</h2>;
+  return <h2 className="mt-8 mb-3 text-base font-semibold text-gray-900 dark:text-slate-100 first:mt-0">{children}</h2>;
 }
 
 function H3({ children }: { children: React.ReactNode }) {
@@ -88,11 +88,11 @@ function P({ children }: { children: React.ReactNode }) {
 }
 
 function UL({ children }: { children: React.ReactNode }) {
-  return <ul className="mb-3 space-y-1.5 pl-4 text-sm text-gray-600 list-disc list-outside">{children}</ul>;
+  return <ul className="mb-3 space-y-1.5 pl-4 text-sm text-gray-600 dark:text-slate-400 list-disc list-outside">{children}</ul>;
 }
 
 function OL({ children }: { children: React.ReactNode }) {
-  return <ol className="mb-3 space-y-1.5 pl-4 text-sm text-gray-600 list-decimal list-outside">{children}</ol>;
+  return <ol className="mb-3 space-y-1.5 pl-4 text-sm text-gray-600 dark:text-slate-400 list-decimal list-outside">{children}</ol>;
 }
 
 function Table({ headers, rows }: { headers: string[]; rows: (string | React.ReactNode)[][] }) {
@@ -100,7 +100,7 @@ function Table({ headers, rows }: { headers: string[]; rows: (string | React.Rea
     <div className="mb-4 overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-600">
       <table className="w-full min-w-max text-sm">
         <thead>
-          <tr className="border-b border-gray-200 bg-gray-50 dark:bg-slate-900/50">
+          <tr className="border-b border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900/50">
             {headers.map((h) => (
               <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                 {h}
@@ -110,9 +110,9 @@ function Table({ headers, rows }: { headers: string[]; rows: (string | React.Rea
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className={cn("border-b border-gray-100 last:border-0", i % 2 === 1 && "bg-gray-50/50")}>
+            <tr key={i} className={cn("border-b border-gray-100 dark:border-slate-700 last:border-0", i % 2 === 1 && "bg-gray-50 dark:bg-slate-900/50/50")}>
               {row.map((cell, j) => (
-                <td key={j} className="px-4 py-2.5 text-gray-700 align-top">
+                <td key={j} className="px-4 py-2.5 text-gray-700 dark:text-slate-300 align-top">
                   {cell}
                 </td>
               ))}
@@ -134,7 +134,7 @@ function Code({ children }: { children: string }) {
 
 function Badge({ children, color = "gray" }: { children: React.ReactNode; color?: "gray" | "red" | "green" | "blue" | "amber" }) {
   const colors = {
-    gray: "bg-gray-100 text-gray-700 dark:text-slate-300",
+    gray: "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300",
     red: "bg-primary-50 text-primary-700",
     green: "bg-green-50 text-green-700",
     blue: "bg-blue-50 text-blue-700",
@@ -223,17 +223,17 @@ const DOCS: DocGroup[] = [
                 { phase: "Fase 5", label: "Polish", status: "planned", desc: "i18n EN/ID, dark mode, mobile PWA, 2FA (TOTP), ekspor PDF/CSV, backup/restore." },
                 { phase: "Fase 6", label: "Pajak & Kepatuhan", status: "planned", desc: "Rekapitulasi penghasilan format SPT 1770, PPh Final 0,5% kalkulasi + reminder, dashboard kepatuhan pajak per bulan." },
               ].map((item) => (
-                <div key={item.phase} className="flex gap-4 rounded-lg border border-gray-100 bg-white p-4">
+                <div key={item.phase} className="flex gap-4 rounded-lg border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                   <div className="shrink-0 pt-0.5">
                     {item.status === "done" ? (
                       <CheckCircle2 className="h-5 w-5 text-green-500" />
                     ) : (
-                      <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                      <div className="h-5 w-5 rounded-full border-2 border-gray-300 dark:border-slate-500" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{item.phase}</span>
+                      <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">{item.phase}</span>
                       <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">{item.label}</span>
                       <Badge color={item.status === "done" ? "green" : "gray"}>
                         {item.status === "done" ? "Selesai" : "Planned"}
@@ -321,7 +321,7 @@ const DOCS: DocGroup[] = [
               <li>Baris atas: semua pendapatan (gaji, freelance, dividen)</li>
               <li>Baris tengah: semua beban per kategori</li>
               <li>Baris bawah: <strong>Surplus/Defisit</strong> — angka terpenting</li>
-              <li>Angka dalam kurung <code className="rounded bg-gray-100 px-1 text-xs">(xxx)</code> = nilai negatif, konvensi standar akuntansi</li>
+              <li>Angka dalam kurung <code className="rounded bg-gray-100 dark:bg-slate-700 px-1 text-xs">(xxx)</code> = nilai negatif, konvensi standar akuntansi</li>
             </UL>
             <Tip>Savings rate = Surplus / Total Pendapatan. Target sehat minimal 20%.</Tip>
 
@@ -394,7 +394,7 @@ const DOCS: DocGroup[] = [
                 { q: "Bisakah dipakai untuk keuangan bisnis?", a: "Bisa, dengan catatan Laby saat ini dirancang untuk satu pengguna. Pisahkan akun bisnis dan pribadi melalui kode akun yang konsisten." },
                 { q: "Bagaimana transaksi mata uang asing?", a: "Masukkan nilai yang sudah dikonversi ke IDR dengan kurs saat transaksi. Catat kurs di field deskripsi untuk referensi." },
               ].map(({ q, a }) => (
-                <div key={q} className="rounded-lg border border-gray-100 bg-white p-4">
+                <div key={q} className="rounded-lg border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                   <p className="mb-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{q}</p>
                   <p className="text-sm text-gray-500 dark:text-slate-400">{a}</p>
                 </div>
@@ -464,7 +464,7 @@ KREDIT 1-103 GoPay (Aset)                       Rp55.000`}</Code>
         content: (
           <div>
             <H2>Chart of Accounts — 62 Akun Bawaan</H2>
-            <P>Terstruktur mengikuti konvensi akuntansi Indonesia. Format kode: <code className="rounded bg-gray-100 px-1 text-xs">X-YYY</code>, sub-akun: <code className="rounded bg-gray-100 px-1 text-xs">X-YYY.Z</code>.</P>
+            <P>Terstruktur mengikuti konvensi akuntansi Indonesia. Format kode: <code className="rounded bg-gray-100 dark:bg-slate-700 px-1 text-xs">X-YYY</code>, sub-akun: <code className="rounded bg-gray-100 dark:bg-slate-700 px-1 text-xs">X-YYY.Z</code>.</P>
 
             {[
               {
@@ -547,12 +547,12 @@ KREDIT 1-103 GoPay (Aset)                       Rp55.000`}</Code>
                   <table className="w-full min-w-max text-sm">
                     <tbody>
                       {accounts.map(([code, name, note]) => (
-                        <tr key={code} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 dark:bg-slate-900/50">
+                        <tr key={code} className="border-b border-gray-100 dark:border-slate-700 last:border-0 hover:bg-gray-50 dark:hover:bg-slate-700/50">
                           <td className="px-4 py-2 w-24">
-                            <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:text-slate-300">{code}</code>
+                            <code className="rounded bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 text-xs font-mono text-gray-700 dark:text-slate-300">{code}</code>
                           </td>
                           <td className="px-4 py-2 font-medium text-gray-800 dark:text-slate-200">{name}</td>
-                          <td className="px-4 py-2 text-gray-400 text-xs">{note}</td>
+                          <td className="px-4 py-2 text-gray-400 dark:text-slate-500 text-xs">{note}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -696,7 +696,7 @@ SURPLUS / (DEFISIT)               Rp13.345.000`}</Code>
             <UL>
               <li><strong>Surplus positif</strong> — pendapatan lebih besar dari beban. Surplus ini menambah ekuitas (net worth).</li>
               <li><strong>Defisit (dalam kurung)</strong> — pengeluaran melebihi pendapatan. Perlu ditelusuri penyebabnya.</li>
-              <li><strong>Angka kurung</strong> <code className="rounded bg-gray-100 px-1 text-xs">(xxx)</code> adalah konvensi standar akuntansi untuk nilai negatif, bukan tanda minus.</li>
+              <li><strong>Angka kurung</strong> <code className="rounded bg-gray-100 dark:bg-slate-700 px-1 text-xs">(xxx)</code> adalah konvensi standar akuntansi untuk nilai negatif, bukan tanda minus.</li>
             </UL>
 
             <H2>Sinyal yang Perlu Diperhatikan</H2>
@@ -1115,7 +1115,7 @@ PPh Final = 0,5% × 25.000.000 = Rp125.000`}</Code>
                   a: "Menambahkan user_id di semua tabel dari awal biayanya rendah, tapi membuka jalur multi-user (pasangan/keluarga) tanpa rewrite besar.",
                 },
               ].map(({ q, a }) => (
-                <div key={q} className="rounded-lg border border-gray-100 bg-white p-4">
+                <div key={q} className="rounded-lg border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                   <p className="mb-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{q}</p>
                   <p className="text-sm text-gray-500 dark:text-slate-400">{a}</p>
                 </div>
@@ -1191,7 +1191,7 @@ isActive    Boolean   @default(true)`}</Code>
         content: (
           <div>
             <H2>Model yang Digunakan</H2>
-            <P>Laby menggunakan <strong>Gemini 2.0 Flash</strong> via <code className="rounded bg-gray-100 px-1 text-xs">@google/generative-ai</code> untuk dua fitur utama.</P>
+            <P>Laby menggunakan <strong>Gemini 2.0 Flash</strong> via <code className="rounded bg-gray-100 dark:bg-slate-700 px-1 text-xs">@google/generative-ai</code> untuk dua fitur utama.</P>
 
             <H2>Fitur 1 — Screenshot Extraction</H2>
             <OL>
@@ -1345,12 +1345,12 @@ export function DocsClient() {
             placeholder="Cari topik..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-8 pr-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+            className="w-full rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900/50 py-2 pl-8 pr-3 text-sm text-gray-800 dark:text-slate-200 placeholder:text-gray-400 dark:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-slate-400"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:text-slate-400"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -1372,8 +1372,8 @@ export function DocsClient() {
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isGroupActive
-                    ? "text-primary-700 bg-primary-50"
-                    : "text-gray-700 hover:bg-gray-100 dark:bg-slate-700"
+                    ? "text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20"
+                    : "text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                 )}
               >
                 <Icon className={cn("h-4 w-4 shrink-0", isGroupActive ? "text-primary-600" : "text-gray-400 dark:text-slate-500")} />
@@ -1394,7 +1394,7 @@ export function DocsClient() {
                     transition={{ duration: 0.18 }}
                     className="overflow-hidden"
                   >
-                    <div className="ml-3 mt-0.5 space-y-0.5 border-l border-gray-100 pl-3 pb-1">
+                    <div className="ml-3 mt-0.5 space-y-0.5 border-l border-gray-100 dark:border-slate-700 pl-3 pb-1">
                       {group.sections.map((section) => {
                         const isActive =
                           activeSection === section.id && activeGroup === group.id;
@@ -1406,7 +1406,7 @@ export function DocsClient() {
                               "flex w-full items-center rounded-md px-2.5 py-1.5 text-sm transition-colors text-left",
                               isActive
                                 ? "bg-primary-600 text-white font-medium"
-                                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-100"
+                                : "text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-900 dark:text-slate-100"
                             )}
                           >
                             {section.title}
@@ -1427,7 +1427,7 @@ export function DocsClient() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4rem)] -m-4 lg:-m-6 overflow-hidden">
       {/* ── Desktop sidebar nav ─────────────────────────────────────────── */}
-      <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-gray-200 bg-white overflow-hidden">
+      <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">Documentation</p>
         </div>
@@ -1453,14 +1453,14 @@ export function DocsClient() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white border-r border-gray-200 lg:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-600 lg:hidden"
               style={{ top: "3.5rem" }}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">Documentation</p>
                 <button
                   onClick={() => setMobileNavOpen(false)}
-                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:bg-slate-700"
+                  className="rounded-lg p-1.5 text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1474,12 +1474,12 @@ export function DocsClient() {
       {/* ── Main content ─────────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         {/* Content topbar */}
-        <div className="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-6">
+        <div className="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 lg:px-6">
           {/* Mobile: hamburger + breadcrumb */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileNavOpen(true)}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 lg:hidden"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 lg:hidden"
             >
               <BookOpen className="h-4 w-4" />
               <span>Menu</span>
@@ -1493,9 +1493,9 @@ export function DocsClient() {
 
           {/* Breadcrumb on mobile */}
           <div className="flex lg:hidden items-center gap-1.5 text-sm">
-            <span className="text-gray-400 text-xs">{currentGroup.label}</span>
+            <span className="text-gray-400 dark:text-slate-500 text-xs">{currentGroup.label}</span>
             <ChevronRight className="h-3 w-3 text-gray-300 dark:text-slate-600" />
-            <span className="font-medium text-gray-700 text-xs">{currentSection.title}</span>
+            <span className="font-medium text-gray-700 dark:text-slate-300 text-xs">{currentSection.title}</span>
           </div>
 
           {/* GitHub link */}
@@ -1503,7 +1503,7 @@ export function DocsClient() {
             href="https://github.com/wayphantomme/laby-finance"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-700 dark:text-slate-300 transition-colors"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">GitHub</span>
@@ -1589,12 +1589,12 @@ function PrevNextNav({
       {prev ? (
         <button
           onClick={() => onNavigate(prev.groupId, prev.sectionId)}
-          className="flex flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+          className="flex flex-1 items-center gap-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
         >
           <ChevronRight className="h-4 w-4 shrink-0 rotate-180 text-gray-400 dark:text-slate-500" />
           <div className="min-w-0">
             <p className="text-xs text-gray-400 dark:text-slate-500">{prev.groupLabel}</p>
-            <p className="text-sm font-medium text-gray-800 truncate">{prev.sectionTitle}</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">{prev.sectionTitle}</p>
           </div>
         </button>
       ) : (
@@ -1603,11 +1603,11 @@ function PrevNextNav({
       {next ? (
         <button
           onClick={() => onNavigate(next.groupId, next.sectionId)}
-          className="flex flex-1 items-center justify-end gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 text-right hover:bg-gray-50 transition-colors"
+          className="flex flex-1 items-center justify-end gap-3 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-right hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
         >
           <div className="min-w-0">
             <p className="text-xs text-gray-400 dark:text-slate-500">{next.groupLabel}</p>
-            <p className="text-sm font-medium text-gray-800 truncate">{next.sectionTitle}</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">{next.sectionTitle}</p>
           </div>
           <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-500" />
         </button>
