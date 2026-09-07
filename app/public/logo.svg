@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none">
+  <!-- ===== PIGGY BANK ICON (48x48, centered vertically in 64px) ===== -->
+  <g transform="translate(0, 8)">
+
+    <!-- Body — main oval -->
+    <ellipse cx="24" cy="26" rx="18" ry="16" fill="#f87171"/>
+
+    <!-- Snout -->
+    <ellipse cx="38" cy="28" rx="6" ry="5" fill="#fca5a5"/>
+    <!-- Nostrils -->
+    <circle cx="36.5" cy="28" r="1.2" fill="#dc2626"/>
+    <circle cx="39.5" cy="28" r="1.2" fill="#dc2626"/>
+
+    <!-- Ear -->
+    <ellipse cx="19" cy="12" rx="4.5" ry="3.5" fill="#ef4444" transform="rotate(-15 19 12)"/>
+    <ellipse cx="19" cy="12" rx="2.8" ry="2" fill="#fca5a5" transform="rotate(-15 19 12)"/>
+
+    <!-- Eye -->
+    <circle cx="26" cy="20" r="2" fill="white"/>
+    <circle cx="26.6" cy="20.4" r="1" fill="#1f2937"/>
+
+    <!-- Coin slot on top -->
+    <rect x="20" y="10" width="9" height="2" rx="1" fill="#b91c1c"/>
+
+    <!-- Leg x4 -->
+    <rect x="14" y="39" width="5" height="7" rx="2.5" fill="#ef4444"/>
+    <rect x="21" y="40" width="5" height="6" rx="2.5" fill="#ef4444"/>
+    <rect x="28" y="40" width="5" height="6" rx="2.5" fill="#ef4444"/>
+
+    <!-- Tail — curly path -->
+    <path d="M6 24 C0 22, 0 32, 6 30 C3 34, 8 36, 8 32" stroke="#ef4444" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+    <!-- Coin flying in -->
+    <circle cx="44" cy="12" r="4.5" fill="#fbbf24"/>
+    <text x="44" y="15.5" font-family="sans-serif" font-size="6" font-weight="bold" fill="#92400e" text-anchor="middle">$</text>
+
+    <!-- Sparkle lines around coin -->
+    <line x1="44" y1="5" x2="44" y2="3" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="50" y1="8" x2="51.5" y2="6.5" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="38" y1="8" x2="36.5" y2="6.5" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- ===== WORDMARK ===== -->
+  <text x="60" y="42" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="30" font-weight="800" fill="#dc2626" letter-spacing="-1">laby</text>
+</svg>

@@ -1,0 +1,19 @@
+# deps
+node_modules/
+
+# build
+.next/
+out/
+
+# env — never commit real credentials
+.env
+.env.local
+.env.production
+
+# db (local SQLite dev)
+prisma/dev.db
+prisma/dev.db-journal
+
+# misc
+.DS_Store
+*.pem

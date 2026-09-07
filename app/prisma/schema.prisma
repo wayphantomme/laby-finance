@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Auth (NextAuth / Auth.js adapter tables) ────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  name          String?
+  image         String?
+  locale        String    @default("en")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  authAccounts     AuthAccount[]
+  sessions         AuthSession[]
+  journalEntries   JournalEntry[]
+  portfolioHoldings PortfolioHolding[]
+  auditLogs        AuditLog[]
+  chatSessions     ChatSession[]
+  recurringRules   RecurringRule[]
+}
+
+model AuthAccount {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("Account")
+}
+
+model AuthSession {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("Session")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Chart of Accounts ───────────────────────────────────────────────────────
+// type values: "ASSET" | "LIABILITY" | "EQUITY" | "INCOME" | "EXPENSE"
+// Normal balance: ASSET/EXPENSE = Debit; LIABILITY/EQUITY/INCOME = Credit
+
+model CoaAccount {
+  id        String  @id @default(cuid())
+  code      String  @unique  // e.g. "1-100", "5-200"
+  nameEn    String
+  nameId    String
+  type      String           // AccountType string enum
+  parentId  String?
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  parent       CoaAccount?        @relation("AccountChildren", fields: [parentId], references: [id])
+  children     CoaAccount[]       @relation("AccountChildren")
+  journalLines JournalLine[]
+  portfolios   PortfolioHolding[]
+}
+
+// ─── Journal (Double-Entry) ───────────────────────────────────────────────────
+// source values: "MANUAL" | "SCREENSHOT_AI" | "CHAT_AI"
+// status values: "DRAFT" | "CONFIRMED"
+
+model JournalEntry {
+  id          String    @id @default(cuid())
+  userId      String
+  entryDate   DateTime
+  description String
+  source      String    @default("MANUAL")
+  status      String    @default("CONFIRMED")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lines       JournalLine[]
+  attachments Attachment[]
+  auditLogs   AuditLog[]
+}
+
+model JournalLine {
+  id             String  @id @default(cuid())
+  journalEntryId String
+  accountId      String
+  // Amounts stored as integer (sen) to avoid float precision issues: 1 IDR = 100 sen
+  debit          Int     @default(0)
+  credit         Int     @default(0)
+  note           String?
+  currency       String  @default("IDR")
+  exchangeRate   Float   @default(1.0)
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account      CoaAccount   @relation(fields: [accountId], references: [id])
+}
+
+// ─── Portfolio ────────────────────────────────────────────────────────────────
+
+model PortfolioHolding {
+  id           String   @id @default(cuid())
+  userId       String
+  accountId    String
+  assetName    String
+  ticker       String?
+  quantity     Float
+  avgBuyPrice  Int      // IDR sen
+  currentPrice Int      // IDR sen
+  currency     String   @default("IDR")
+  lastUpdated  DateTime @default(now())
+
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account CoaAccount @relation(fields: [accountId], references: [id])
+}
+
+// ─── Attachments ──────────────────────────────────────────────────────────────
+
+model Attachment {
+  id             String   @id @default(cuid())
+  journalEntryId String
+  fileUrl        String
+  fileName       String?
+  fileType       String?
+  uploadedAt     DateTime @default(now())
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+// action values: "CREATE" | "UPDATE" | "DELETE"
+
+model AuditLog {
+  id             String    @id @default(cuid())
+  userId         String?
+  entityType     String
+  entityId       String
+  action         String
+  beforeValue    String?
+  afterValue     String?
+  source         String    @default("MANUAL")
+  journalEntryId String?
+  createdAt      DateTime  @default(now())
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  journalEntry JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+}
+
+// ─── Recurring Rules ──────────────────────────────────────────────────────────
+// frequency values: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY"
+
+model RecurringRule {
+  id                String   @id @default(cuid())
+  userId            String
+  description       String
+  templateEntryJson String
+  frequency         String
+  nextRunDate       DateTime
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Chat ─────────────────────────────────────────────────────────────────────
+
+model ChatSession {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+}
+
+model ChatMessage {
+  id            String   @id @default(cuid())
+  chatSessionId String
+  role          String   // "user" | "assistant"
+  content       String
+  createdAt     DateTime @default(now())
+
+  session ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+}
