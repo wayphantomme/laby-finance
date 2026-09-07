@@ -63,7 +63,10 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");
 
-    const todayISO = new Date().toISOString().split("T")[0];
+    const todayISO = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Makassar",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(new Date());
     const extractPrompt = EXTRACT_PROMPT.replace(
       "- date: use today's date if not visible in the image",
       `- date: use today's date (${todayISO}) if not visible in the image`

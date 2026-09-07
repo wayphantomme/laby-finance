@@ -137,10 +137,19 @@ export async function POST(req: NextRequest) {
     const financialContext = await buildFinancialContext(session.user.id);
 
     // Inject server-side date so AI knows today and "yesterday" correctly
+    // Timezone: Asia/Makassar = WITA = UTC+8 (Bali)
     const now = new Date();
-    const todayStr = now.toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
-    const todayISO = now.toISOString().split("T")[0];
-    const yesterdayISO = new Date(now.getTime() - 86400000).toISOString().split("T")[0];
+    const formatter = new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Makassar",
+      year: "numeric", month: "long", day: "numeric", weekday: "long",
+    });
+    const isoFormatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Makassar",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    });
+    const todayStr = formatter.format(now);
+    const todayISO = isoFormatter.format(now);
+    const yesterdayISO = isoFormatter.format(new Date(now.getTime() - 86400000));
 
     const systemPrompt = `${SYSTEM_PROMPT_BASE}
 
