@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { PiggyBank } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLocale } from "@/lib/i18n/locale-context";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,17 +20,10 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
+    const res = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-
     if (res?.error) {
-      setError("Invalid email or password.");
+      setError(t.login.invalidCredentials);
     } else {
       router.push("/dashboard");
       router.refresh();
@@ -36,21 +31,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-600 mb-3">
             <PiggyBank className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-xl font-semibold text-gray-900">Sign in to Laby</h1>
-          <p className="text-sm text-gray-500 mt-1">Personal financial statements, done properly</p>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">{t.login.title}</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{t.login.subtitle}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Email"
+              label={t.login.email}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -59,7 +53,7 @@ export default function LoginPage() {
               autoComplete="email"
             />
             <Input
-              label="Password"
+              label={t.login.password}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -67,21 +61,19 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
             />
-
             {error && (
-              <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">
+              <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
-
             <Button type="submit" className="w-full" loading={loading}>
-              Sign in
+              {t.login.signIn}
             </Button>
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Laby — Personal financial statements
+        <p className="text-center text-sm text-gray-500 dark:text-slate-500 mt-4">
+          {t.login.tagline}
         </p>
       </div>
     </div>

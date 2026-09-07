@@ -16,14 +16,11 @@ interface StatCardProps {
 
 export function StatCard({ title, valueSen, subtitle, trend = "neutral", index = 0 }: StatCardProps) {
   const trendColor =
-    trend === "up" ? "text-green-600" :
-    trend === "down" ? "text-red-500" :
-    "text-gray-400";
+    trend === "up"   ? "text-green-600 dark:text-green-400" :
+    trend === "down" ? "text-red-500 dark:text-red-400" :
+    "text-gray-400 dark:text-slate-500";
 
-  const TrendIcon =
-    trend === "up" ? TrendingUp :
-    trend === "down" ? TrendingDown :
-    Minus;
+  const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
 
   return (
     <motion.div
@@ -32,8 +29,8 @@ export function StatCard({ title, valueSen, subtitle, trend = "neutral", index =
       transition={{ delay: index * 0.07, duration: 0.3 }}
     >
       <Card>
-        <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{title}</p>
-        <p className="mt-2 text-xl font-semibold text-gray-900 tabular-nums truncate sm:text-2xl">
+        <p className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">{title}</p>
+        <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-slate-100 tabular-nums">
           {formatRupiah(Math.abs(valueSen))}
         </p>
         {subtitle && (

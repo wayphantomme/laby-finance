@@ -10,26 +10,14 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      className,
-      variant = "primary",
-      size = "md",
-      loading = false,
-      disabled,
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const base =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 disabled:pointer-events-none disabled:opacity-50";
+  ({ className, variant = "primary", size = "md", loading = false, disabled, children, ...props }, ref) => {
+    const base = "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 disabled:pointer-events-none disabled:opacity-50";
 
     const variants = {
-      primary: "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800",
-      secondary: "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:bg-gray-100",
-      ghost: "text-gray-600 hover:bg-gray-100 active:bg-gray-200",
-      danger: "bg-red-50 text-red-600 hover:bg-red-100 active:bg-red-200",
+      primary:   "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800",
+      secondary: "bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700",
+      ghost:     "text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700",
+      danger:    "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30",
     };
 
     const sizes = {

@@ -361,43 +361,17 @@ export async function computeNetWorthHistory(
     },
   });
 
-  // Also fetch income/expense for retained earnings
-  const ieLines = await prisma.journalLine.findMany({
-    where: {
-      journalEntry: {
-        userId,
-        status: "CONFIRMED",
-        deletedAt: null,
-        entryDate: { lte: endOfYear },
-      },
-      account: { type: { in: ["INCOME", "EXPENSE"] } },
-    },
-    include: {
-      account: { select: { type: true } },
-      journalEntry: { select: { entryDate: true } },
-    },
-  });
-
   const result = [];
   for (let m = 0; m < 12; m++) {
     const cutoff = new Date(year, m + 1, 0, 23, 59, 59); // last day of month
 
     let assets = 0;
     let liabilities = 0;
-    let retained = 0;
 
     for (const line of lines) {
       if (new Date(line.journalEntry.entryDate) > cutoff) continue;
       if (line.account.type === "ASSET") assets += line.debit - line.credit;
       else liabilities += line.credit - line.debit;
-    }
-
-    for (const line of ieLines) {
-      if (new Date(line.journalEntry.entryDate) > cutoff) continue;
-      retained +=
-        line.account.type === "INCOME"
-          ? line.credit - line.debit
-          : line.debit - line.credit;
     }
 
     result.push({

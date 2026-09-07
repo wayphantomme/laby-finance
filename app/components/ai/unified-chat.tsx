@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, X, Sparkles, RefreshCw, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -167,6 +167,7 @@ function MessageBubble({ msg, accounts, onSaved }: { msg: Message; accounts: Acc
         {/* Image preview */}
         {msg.imageUrl && (
           <div className="rounded-2xl overflow-hidden border border-gray-200 max-w-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={msg.imageUrl} alt="Uploaded" className="w-full max-h-60 object-contain bg-gray-50" />
           </div>
         )}
@@ -327,12 +328,12 @@ export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () =>
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5 min-h-0">
         {isEmpty ? (
           <div className="flex flex-col items-center justify-center h-full gap-6 text-center select-none">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 dark:bg-primary-900/20">
               <Sparkles className="h-6 w-6 text-primary-500" />
             </div>
             <div>
-              <p className="text-base font-semibold text-gray-800">Laby AI</p>
-              <p className="text-sm text-gray-400 mt-1 max-w-xs">
+              <p className="text-base font-semibold text-gray-800 dark:text-slate-100">Laby AI</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500 mt-1 max-w-xs">
                 Ask about your finances, or attach a screenshot to extract transactions automatically.
               </p>
             </div>
@@ -341,7 +342,7 @@ export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () =>
                 <button
                   key={s}
                   onClick={() => { setInput(s); textareaRef.current?.focus(); }}
-                  className="text-left text-sm px-4 py-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-primary-300 transition-colors"
+                  className="text-left text-sm px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-primary-300 transition-colors"
                 >
                   {s}
                 </button>
@@ -385,6 +386,7 @@ export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () =>
         {/* Pending image preview */}
         {pendingImageUrl && (
           <div className="relative inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pendingImageUrl} alt="Pending upload" className="h-20 w-auto rounded-xl border border-gray-200 object-cover" />
             <button
               onClick={clearPendingImage}

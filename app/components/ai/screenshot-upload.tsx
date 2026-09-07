@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import { Upload, X, CheckCircle, AlertCircle, Loader2, ImageIcon, Trash2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Upload, X, CheckCircle, AlertCircle, ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { formatRupiah, formatDateInput } from "@/lib/format";
+import { formatRupiah } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
 
 interface TransactionDraft {
   date: string;
@@ -206,6 +205,7 @@ export function ScreenshotUpload({ onTransactionSaved }: { onTransactionSaved: (
         <div className="space-y-3">
           {/* Preview */}
           <div className="relative rounded-xl overflow-hidden border border-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={preview} alt="Screenshot preview" className="w-full max-h-64 object-contain bg-gray-50" />
             <button
               onClick={clearFile}

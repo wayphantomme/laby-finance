@@ -12,14 +12,32 @@
   --color-primary-800: #991b1b;
   --color-primary-900: #7f1d1d;
 
-  --color-surface: #ffffff;
-  --color-surface-muted: #f9fafb;
-  --color-border: #e5e7eb;
-  --color-text: #111827;
-  --color-text-muted: #6b7280;
-
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --radius-card: 0.75rem;
+}
+
+/* ── Light mode (default) ─────────────────────────────────────────────────── */
+:root {
+  --bg:           #f9fafb;
+  --bg-card:      #ffffff;
+  --bg-muted:     #f3f4f6;
+  --border:       #e5e7eb;
+  --border-muted: #f3f4f6;
+  --text:         #111827;
+  --text-muted:   #6b7280;
+  --text-subtle:  #9ca3af;
+}
+
+/* ── Dark mode ────────────────────────────────────────────────────────────── */
+.dark {
+  --bg:           #0f172a;
+  --bg-card:      #1e293b;
+  --bg-muted:     #1e293b;
+  --border:       #334155;
+  --border-muted: #1e293b;
+  --text:         #f1f5f9;
+  --text-muted:   #94a3b8;
+  --text-subtle:  #64748b;
 }
 
 * {
@@ -27,35 +45,27 @@
 }
 
 body {
-  background-color: var(--color-surface-muted);
-  color: var(--color-text);
+  background-color: var(--bg);
+  color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+.dark ::-webkit-scrollbar-thumb { background: #475569; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
 /* Remove number input spinners */
 input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield;
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+/* Date input dark mode */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
