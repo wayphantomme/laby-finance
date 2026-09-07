@@ -32,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           attribute="class"
           defaultTheme="light"
           enableSystem={false}
+          storageKey="laby-theme"
           disableTransitionOnChange
         >
           <LocaleProvider>
