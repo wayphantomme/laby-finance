@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");
 
-    const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genai.getGenerativeModel({ model: "gemini-3.6-flash" });
 
     const result = await model.generateContent([
       { text: EXTRACT_PROMPT },
