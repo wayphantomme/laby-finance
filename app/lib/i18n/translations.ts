@@ -26,7 +26,7 @@ export const translations = {
     // Dashboard
     dashboard: {
       netWorth: "Net Worth",
-      netWorthSubtitle: "Total assets minus liabilities",
+      netWorthSubtitle: "Assets − Liabilities",
       income: "Income",
       expenses: "Expenses",
       cashFlow: "Cash Flow",
@@ -210,7 +210,7 @@ export const translations = {
     },
     dashboard: {
       netWorth: "Kekayaan Bersih",
-      netWorthSubtitle: "Total aset dikurangi liabilitas",
+      netWorthSubtitle: "Aset − Liabilitas",
       income: "Pemasukan",
       expenses: "Pengeluaran",
       cashFlow: "Arus Kas",

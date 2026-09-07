@@ -34,9 +34,9 @@ export function StatCard({ title, valueSen, subtitle, trend = "neutral", index =
           {formatRupiah(Math.abs(valueSen))}
         </p>
         {subtitle && (
-          <div className={cn("mt-1 flex items-center gap-1 text-xs", trendColor)}>
-            <TrendIcon className="h-3.5 w-3.5" />
-            <span>{subtitle}</span>
+          <div className={cn("mt-1 flex items-center gap-1 text-xs truncate", trendColor)}>
+            <TrendIcon className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{subtitle}</span>
           </div>
         )}
       </Card>
