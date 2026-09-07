@@ -166,6 +166,37 @@ laby-finance/
 
 ---
 
+## CI/CD
+
+This project uses GitHub Actions for automated testing and deployment.
+
+| Workflow | Trigger | Description |
+|---|---|---|
+| **CI** | Push / PR to `main`, `develop` | Lint + production build check |
+| **Deploy** | Push to `main` | Deploy to Vercel production |
+
+### Status
+
+[![CI](https://github.com/wayphantomme/laby-finance/actions/workflows/ci.yml/badge.svg)](https://github.com/wayphantomme/laby-finance/actions/workflows/ci.yml)
+[![Deploy to Vercel](https://github.com/wayphantomme/laby-finance/actions/workflows/deploy.yml/badge.svg)](https://github.com/wayphantomme/laby-finance/actions/workflows/deploy.yml)
+
+### Required GitHub Secrets
+
+To enable the workflows, add these secrets at **Settings → Secrets and variables → Actions**:
+
+| Secret | Description |
+|---|---|
+| `DATABASE_URL` | Neon PostgreSQL pooled connection URL |
+| `DIRECT_URL` | Neon PostgreSQL direct connection URL |
+| `AUTH_SECRET` | Auth.js secret (`openssl rand -base64 32`) |
+| `GEMINI_API_KEY` | Google Gemini API key |
+| `NEXT_PUBLIC_APP_NAME` | App display name (e.g. `Laby`) |
+| `VERCEL_TOKEN` | Vercel API token |
+| `VERCEL_ORG_ID` | Vercel team/org ID |
+| `VERCEL_PROJECT_ID` | Vercel project ID |
+
+---
+
 ## License
 
 MIT
