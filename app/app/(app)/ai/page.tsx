@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { UnifiedChat } from "@/components/ai/unified-chat";
 import { ChatHistory } from "@/components/ai/chat-history";
 import { cn } from "@/lib/utils";
@@ -22,8 +23,9 @@ export default function AIPage() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [sessionMessages, setSessionMessages] = useState<Message[]>([]);
   const [historyRefresh, setHistoryRefresh] = useState(0);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [txRefresh, setTxRefresh] = useState(0);
+  // Desktop: collapsed by default when no history; mobile: always starts closed
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [, setTxRefresh] = useState(0);
 
   async function loadSession(id: string) {
     const res = await fetch(`/api/ai/sessions/${id}`);
@@ -38,13 +40,14 @@ export default function AIPage() {
       );
     }
     setActiveSessionId(id);
-    setSidebarOpen(false);
+    // Close sidebar on mobile after selecting
+    if (window.innerWidth < 1024) setSidebarOpen(false);
   }
 
   function handleNewChat() {
     setActiveSessionId(null);
     setSessionMessages([]);
-    setSidebarOpen(false);
+    if (window.innerWidth < 1024) setSidebarOpen(false);
   }
 
   function handleFirstMessage(id: string) {
@@ -53,34 +56,36 @@ export default function AIPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] lg:h-[calc(100dvh-4rem)] -m-4 lg:-m-6">
+    <div className="flex h-[calc(100dvh-3.5rem)] lg:h-[calc(100dvh-4rem)] -m-4 lg:-m-6 overflow-hidden">
 
-      {/* ── History sidebar — desktop always visible, mobile slide-in ── */}
-      <>
-        {/* Mobile backdrop */}
+      {/* ── Mobile backdrop ── */}
+      <AnimatePresence>
         {sidebarOpen && (
-          <div
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 z-30 bg-black/30 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
+      </AnimatePresence>
 
-        <aside className={cn(
-          "flex flex-col border-r border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900",
-          "transition-all duration-250 ease-out",
-          // Desktop: always visible, fixed width
-          "hidden lg:flex lg:w-60 lg:relative",
-          // Mobile: absolute overlay, toggled
-          sidebarOpen && "flex fixed inset-y-0 left-0 z-40 w-72 lg:relative"
-        )}>
+      {/* ── History sidebar ── */}
+      {/* Desktop: inline, animated width */}
+      <motion.aside
+        animate={{ width: sidebarOpen ? 240 : 0 }}
+        transition={{ duration: 0.22, ease: "easeInOut" }}
+        className={cn(
+          "hidden lg:flex flex-col border-r border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shrink-0"
+        )}
+        style={{ minWidth: 0 }}
+      >
+        <div className="w-60">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">History</span>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1 rounded text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-            >
-              <PanelLeftClose className="h-4 w-4" />
-            </button>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500 whitespace-nowrap">History</span>
           </div>
           <ChatHistory
             activeSessionId={activeSessionId}
@@ -88,18 +93,54 @@ export default function AIPage() {
             onNewChat={handleNewChat}
             refreshKey={historyRefresh}
           />
-        </aside>
-      </>
+        </div>
+      </motion.aside>
+
+      {/* Mobile: fixed overlay sidebar */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.aside
+            key="mobile-sidebar"
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="fixed inset-y-0 left-0 z-40 flex flex-col w-72 border-r border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-900 lg:hidden"
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">History</span>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 rounded text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </button>
+            </div>
+            <ChatHistory
+              activeSessionId={activeSessionId}
+              onSelectSession={loadSession}
+              onNewChat={handleNewChat}
+              refreshKey={historyRefresh}
+            />
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
       {/* ── Main chat area ── */}
       <div className="flex flex-col flex-1 min-w-0 relative">
-        {/* Mobile: toggle history button */}
+        {/* Toggle button — always visible, top-left of chat area */}
         <button
-          onClick={() => setSidebarOpen(true)}
-          className="absolute top-3 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors lg:hidden"
-          aria-label="Open chat history"
+          onClick={() => setSidebarOpen((v) => !v)}
+          className={cn(
+            "absolute top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+            "text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700",
+            sidebarOpen ? "left-3 lg:left-3" : "left-3"
+          )}
+          aria-label={sidebarOpen ? "Close history" : "Open history"}
         >
-          <PanelLeftOpen className="h-4 w-4" />
+          {sidebarOpen
+            ? <PanelLeftClose className="h-4 w-4" />
+            : <PanelLeftOpen className="h-4 w-4" />}
         </button>
 
         <UnifiedChat
