@@ -135,7 +135,23 @@ export async function POST(req: NextRequest) {
     }
 
     const financialContext = await buildFinancialContext(session.user.id);
-    const systemPrompt = `${SYSTEM_PROMPT_BASE}\n\n${financialContext}`;
+
+    // Inject server-side date so AI knows today and "yesterday" correctly
+    const now = new Date();
+    const todayStr = now.toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const todayISO = now.toISOString().split("T")[0];
+    const yesterdayISO = new Date(now.getTime() - 86400000).toISOString().split("T")[0];
+
+    const systemPrompt = `${SYSTEM_PROMPT_BASE}
+
+== DATE CONTEXT ==
+Today is: ${todayStr} (${todayISO})
+Yesterday was: ${yesterdayISO}
+When user says "kemarin" or "yesterday", use date: ${yesterdayISO}
+When user says "tadi" or "today" or "barusan", use date: ${todayISO}
+Always use YYYY-MM-DD format for dates in the transactions JSON.
+
+${financialContext}`;
 
     const history = messages.slice(0, -1).map((m) => ({
       role: m.role === "assistant" ? "model" : "user" as "user" | "model",

@@ -63,10 +63,16 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString("base64");
 
+    const todayISO = new Date().toISOString().split("T")[0];
+    const extractPrompt = EXTRACT_PROMPT.replace(
+      "- date: use today's date if not visible in the image",
+      `- date: use today's date (${todayISO}) if not visible in the image`
+    );
+
     const model = genai.getGenerativeModel({ model: "gemini-3.6-flash" });
 
     const result = await model.generateContent([
-      { text: EXTRACT_PROMPT },
+      { text: extractPrompt },
       {
         inlineData: {
           mimeType: file.type as "image/jpeg" | "image/png" | "image/webp",
