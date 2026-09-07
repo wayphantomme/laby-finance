@@ -4,9 +4,20 @@ import { LocaleProvider } from "@/lib/i18n/locale-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Laby — Personal Financial Statements",
+  title: {
+    template: "%s | Laby",
+    default: "Laby | Personal Financial Statements",
+  },
   description: "Personal financial statements, done properly.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
