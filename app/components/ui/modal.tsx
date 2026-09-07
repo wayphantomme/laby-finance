@@ -1,31 +1,45 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface ModalProps {
   open: boolean;
   onClose: () => void;
-  title?: string;
+  title: string;
   children: React.ReactNode;
+  size?: "sm" | "md" | "lg";
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
-  // Close on Escape key
+export function Modal({ open, onClose, title, children, size = "md" }: ModalProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Close on Escape
   useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
+    function handler(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
-    if (open) document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+    if (open) document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  // Prevent body scroll when modal is open
+  // Lock body scroll on mobile
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
     return () => { document.body.style.overflow = ""; };
   }, [open]);
+
+  const sizes = {
+    sm: "max-w-sm",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+  };
 
   return (
     <AnimatePresence>
@@ -33,89 +47,57 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         <>
           {/* Backdrop */}
           <motion.div
-            key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={onClose}
+            aria-hidden="true"
           />
 
-          {/* 
-            Mobile: bottom sheet (slides up from bottom, rounded top corners)
-            Desktop (sm+): centered dialog
-          */}
-
-          {/* ── Mobile bottom sheet ── */}
-          <motion.div
-            key="sheet"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ duration: 0.28, ease: "easeOut" }}
-            className="fixed inset-x-0 bottom-0 z-50 sm:hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* drag handle */}
-            <div className="flex justify-center pt-2 pb-1 bg-white rounded-t-2xl">
-              <div className="h-1 w-10 rounded-full bg-gray-200" />
-            </div>
-            <div className="bg-white">
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 pb-3 pt-1 border-b border-gray-100">
-                {title && (
-                  <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-                )}
-                <button
-                  onClick={onClose}
-                  className="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              {/* Content — max 85vh so it never covers full screen */}
-              <div className="px-5 py-4 overflow-y-auto" style={{ maxHeight: "calc(85vh - 60px)" }}>
-                {children}
-              </div>
-              {/* Safe-area bottom padding for iPhone home bar */}
-              <div className="h-safe-area-inset-bottom pb-2" />
-            </div>
-          </motion.div>
-
-          {/* ── Desktop centered dialog ── */}
-          <motion.div
-            key="modal"
-            initial={{ opacity: 0, scale: 0.96, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed inset-0 z-50 hidden sm:flex items-center justify-center p-4 pointer-events-none"
-          >
-            <div
-              className="w-full max-w-lg bg-white rounded-2xl shadow-xl pointer-events-auto"
+          {/* Dialog */}
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div
+              ref={contentRef}
+              initial={{ opacity: 0, y: 40, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.97 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={title}
+              className={cn(
+                "relative w-full bg-white dark:bg-slate-800 shadow-xl",
+                // Mobile: slide up from bottom, full width, rounded top
+                "rounded-t-2xl sm:rounded-2xl",
+                // Desktop: centered with max-width
+                "sm:" + sizes[size],
+                // Max height with scroll
+                "max-h-[92dvh] sm:max-h-[85dvh] flex flex-col"
+              )}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
-                {title && (
-                  <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-                )}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700 shrink-0">
+                {/* Mobile drag indicator */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-gray-200 dark:bg-slate-600 sm:hidden" />
+                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                   aria-label="Close"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              {/* Content */}
-              <div className="px-6 py-5 max-h-[80vh] overflow-y-auto">
+
+              {/* Content — scrollable */}
+              <div className="flex-1 overflow-y-auto px-5 py-4">
                 {children}
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

@@ -204,16 +204,35 @@ function MessageBubble({ msg, accounts, onSaved }: { msg: Message; accounts: Acc
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () => void }) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function UnifiedChat({
+  onTransactionSaved,
+  sessionId,
+  initialMessages,
+  onFirstMessage,
+}: {
+  onTransactionSaved?: () => void;
+  sessionId: string | null;
+  initialMessages?: Message[];
+  onFirstMessage?: (sessionId: string) => void;
+}) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Reset when sessionId changes (switching sessions)
+  useEffect(() => {
+    setCurrentSessionId(sessionId);
+    setMessages(initialMessages ?? []);
+    setInput("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   useEffect(() => {
     fetch("/api/accounts").then((r) => r.json()).then((d) => setAccounts(d.accounts ?? []));
@@ -265,18 +284,33 @@ export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () =>
         content: m.content,
       }));
 
+      // Create session on first message
+      let activeSessionId = currentSessionId;
+      if (!activeSessionId) {
+        const sessRes = await fetch("/api/ai/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        const sessData = await sessRes.json();
+        activeSessionId = sessData.session?.id ?? null;
+        setCurrentSessionId(activeSessionId);
+        if (activeSessionId) onFirstMessage?.(activeSessionId);
+      }
+
       let res: Response;
 
       if (capturedImage) {
         const form = new FormData();
         form.append("messages", JSON.stringify(allMessages));
         form.append("image", capturedImage);
+        if (activeSessionId) form.append("sessionId", activeSessionId);
         res = await fetch("/api/ai/chat", { method: "POST", body: form });
       } else {
         res = await fetch("/api/ai/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: allMessages }),
+          body: JSON.stringify({ messages: allMessages, sessionId: activeSessionId }),
         });
       }
 
@@ -448,8 +482,8 @@ export function UnifiedChat({ onTransactionSaved }: { onTransactionSaved?: () =>
           <span>Paste image with Ctrl+V or use the attach button</span>
           {messages.length > 0 && (
             <button
-              onClick={() => setMessages([])}
-              className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
+              onClick={() => { setMessages([]); setCurrentSessionId(null); onFirstMessage?.(null as unknown as string); }}
+              className="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
             >
               <RefreshCw className="h-3 w-3" /> New chat
             </button>

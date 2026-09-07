@@ -114,11 +114,13 @@ export async function POST(req: NextRequest) {
     let messages: { role: "user" | "assistant"; content: string }[] = [];
     let imageBase64: string | null = null;
     let imageMimeType: string = "image/jpeg";
+    let sessionId: string | null = null;
 
     if (contentType.includes("multipart/form-data")) {
       const form = await req.formData();
       const messagesRaw = form.get("messages");
       messages = messagesRaw ? JSON.parse(messagesRaw as string) : [];
+      sessionId = form.get("sessionId") as string | null;
       const file = form.get("image") as File | null;
       if (file) {
         const buf = await file.arrayBuffer();
@@ -128,6 +130,7 @@ export async function POST(req: NextRequest) {
     } else {
       const body = await req.json();
       messages = body.messages ?? [];
+      sessionId = body.sessionId ?? null;
     }
 
     if (!messages.length) {
@@ -230,6 +233,30 @@ ${financialContext}`;
 
     // Strip the transactions JSON block from display text
     const displayText = responseText.replace(/```transactions[\s\S]*?```/g, "").trim();
+
+    // Persist messages to DB if sessionId provided
+    if (sessionId) {
+      const lastUserMsg = messages[messages.length - 1];
+      await prisma.chatMessage.createMany({
+        data: [
+          { chatSessionId: sessionId, role: "user", content: lastUserMsg.content },
+          { chatSessionId: sessionId, role: "assistant", content: displayText },
+        ],
+      });
+
+      // Auto-set session title from first user message if not set
+      const chatSession = await prisma.chatSession.findUnique({
+        where: { id: sessionId },
+        select: { title: true },
+      });
+      if (!chatSession?.title && lastUserMsg.content) {
+        const title = lastUserMsg.content.slice(0, 60).trim();
+        await prisma.chatSession.update({
+          where: { id: sessionId },
+          data: { title },
+        });
+      }
+    }
 
     return NextResponse.json({ content: displayText, drafts });
   } catch (e) {

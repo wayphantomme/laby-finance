@@ -205,10 +205,12 @@ export async function computeBalanceSheet(
 
   let retainedEarnings = 0;
   for (const line of incomeLines) {
+    // INCOME: net worth goes up when income is credited (credit - debit)
+    // EXPENSE: net worth goes down when expense is debited (negate debit - credit)
     retainedEarnings +=
       line.account.type === "INCOME"
-        ? line.credit - line.debit
-        : line.debit - line.credit;
+        ? line.credit - line.debit      // income credit increases retained earnings
+        : -(line.debit - line.credit);  // expense debit DECREASES retained earnings
   }
 
   // Find or create retained earnings row
