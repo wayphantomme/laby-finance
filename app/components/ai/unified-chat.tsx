@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, X, Sparkles, RefreshCw, CheckCircle } from "lucide-react";
+import { Send, Paperclip, X, Sparkles, RefreshCw, CheckCircle, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -24,12 +24,25 @@ interface TransactionDraft {
   confidence: string;
 }
 
+interface HoldingDraft {
+  assetName: string;
+  ticker: string;
+  assetType: string;
+  quantity: number;
+  lots: number | null;
+  avgBuyPriceIdr: number;
+  accountId: string;
+  currency: string;
+  confidence: string;
+}
+
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
-  imageUrl?: string;   // local object URL for preview
+  imageUrl?: string;
   drafts?: TransactionDraft[];
+  holdings?: HoldingDraft[];
 }
 
 interface Account {
@@ -145,9 +158,144 @@ function DraftCard({
   );
 }
 
+// ─── Holding draft card ───────────────────────────────────────────────────────
+
+const ASSET_TYPE_LABELS: Record<string, string> = {
+  stock_idx: "Saham IDX",
+  stock_us: "Saham US",
+  crypto: "Kripto",
+  gold: "Emas",
+  mutual_fund: "Reksa Dana",
+  other: "Lainnya",
+};
+
+function HoldingDraftCard({
+  draft,
+  onSaved,
+}: {
+  draft: HoldingDraft;
+  onSaved: () => void;
+}) {
+  const [edited, setEdited] = useState({ ...draft });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [openingDate, setOpeningDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+
+  async function save() {
+    if (!edited.accountId || edited.quantity <= 0) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/portfolio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assetName: edited.assetName,
+          ticker: edited.ticker,
+          assetType: edited.assetType,
+          quantity: edited.quantity,
+          lots: edited.lots,
+          avgBuyPriceIdr: edited.avgBuyPriceIdr,
+          accountId: edited.accountId,
+          currency: edited.currency,
+          openingDate,
+        }),
+      });
+      if (res.ok) {
+        setSaved(true);
+        onSaved();
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (saved) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
+        <CheckCircle className="h-4 w-4 shrink-0" />
+        <span>
+          Saved: {edited.ticker} — {edited.quantity}{edited.lots ? ` (${edited.lots} lot)` : ""} units
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 space-y-3">
+      <div className="flex items-center gap-2">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+          <TrendingUp className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">{edited.assetName}</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500">{ASSET_TYPE_LABELS[edited.assetType] ?? edited.assetType}</p>
+        </div>
+        <Badge variant={edited.confidence === "high" ? "income" : "default"}>
+          {edited.ticker}
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Input
+          label={edited.assetType === "stock_idx" ? "Jumlah Lot" : "Jumlah Unit"}
+          type="number"
+          value={String(edited.assetType === "stock_idx" ? (edited.lots ?? edited.quantity / 100) : edited.quantity)}
+          onChange={(e) => {
+            const v = parseFloat(e.target.value) || 0;
+            if (edited.assetType === "stock_idx") {
+              setEdited((p) => ({ ...p, lots: v, quantity: v * 100 }));
+            } else {
+              setEdited((p) => ({ ...p, quantity: v }));
+            }
+          }}
+        />
+        <Input
+          label="Harga Beli Rata-rata (IDR)"
+          type="number"
+          value={String(edited.avgBuyPriceIdr)}
+          onChange={(e) => setEdited((p) => ({ ...p, avgBuyPriceIdr: parseFloat(e.target.value) || 0 }))}
+          placeholder={edited.assetType === "stock_idx" ? "per lembar" : "per unit"}
+        />
+        <div className="col-span-2">
+          <Input
+            label="Tanggal Opening Balance"
+            type="date"
+            value={openingDate}
+            onChange={(e) => setOpeningDate(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {edited.avgBuyPriceIdr > 0 && edited.quantity > 0 && (
+        <p className="text-xs text-gray-500 dark:text-slate-400">
+          Total modal:{" "}
+          <span className="font-medium text-gray-800 dark:text-slate-200">
+            {formatRupiah(Math.round(edited.avgBuyPriceIdr * edited.quantity * 100))}
+          </span>
+          {edited.assetType === "stock_idx" && edited.lots && (
+            <span className="ml-1 text-gray-400">({edited.lots} lot × 100 lembar × {formatRupiah(edited.avgBuyPriceIdr * 100)})</span>
+          )}
+        </p>
+      )}
+
+      <Button
+        size="sm"
+        className="w-full"
+        loading={saving}
+        disabled={!edited.accountId || edited.quantity <= 0 || edited.avgBuyPriceIdr <= 0}
+        onClick={save}
+      >
+        Tambah ke Portfolio
+      </Button>
+    </div>
+  );
+}
+
 // ─── Message bubble ───────────────────────────────────────────────────────────
 
-function MessageBubble({ msg, accounts, onSaved }: { msg: Message; accounts: Account[]; onSaved: () => void }) {
+function MessageBubble({ msg, accounts, onSaved, onHoldingSaved }: { msg: Message; accounts: Account[]; onSaved: () => void; onHoldingSaved: () => void }) {
   const isUser = msg.role === "user";
 
   return (
@@ -197,6 +345,18 @@ function MessageBubble({ msg, accounts, onSaved }: { msg: Message; accounts: Acc
             ))}
           </div>
         )}
+
+        {/* Portfolio holdings drafts */}
+        {msg.holdings && msg.holdings.length > 0 && (
+          <div className="w-full space-y-2 mt-1">
+            <p className="text-xs text-gray-400 font-medium">
+              {msg.holdings.length} holding{msg.holdings.length > 1 ? "s" : ""} ditemukan — isi harga beli & konfirmasi:
+            </p>
+            {msg.holdings.map((holding, i) => (
+              <HoldingDraftCard key={i} draft={holding} onSaved={onHoldingSaved} />
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -206,11 +366,13 @@ function MessageBubble({ msg, accounts, onSaved }: { msg: Message; accounts: Acc
 
 export function UnifiedChat({
   onTransactionSaved,
+  onHoldingSaved,
   sessionId,
   initialMessages,
   onFirstMessage,
 }: {
   onTransactionSaved?: () => void;
+  onHoldingSaved?: () => void;
   sessionId: string | null;
   initialMessages?: Message[];
   onFirstMessage?: (sessionId: string) => void;
@@ -349,6 +511,7 @@ export function UnifiedChat({
           role: "assistant",
           content: res.ok ? data.content : `Error: ${data.error ?? "Request failed"}`,
           drafts: res.ok && data.drafts?.length ? data.drafts : undefined,
+          holdings: res.ok && data.holdings?.length ? data.holdings : undefined,
         },
       ]);
 
@@ -424,6 +587,7 @@ export function UnifiedChat({
                   msg={msg}
                   accounts={accounts}
                   onSaved={() => onTransactionSaved?.()}
+                  onHoldingSaved={() => onHoldingSaved?.()}
                 />
               ))}
             </AnimatePresence>
