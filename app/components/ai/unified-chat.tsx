@@ -236,7 +236,6 @@ export function UnifiedChat({
     return () => {
       setMessages((prev) => { revokeMessageImages(prev); return prev; });
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Reset when sessionId changes (switching sessions)
