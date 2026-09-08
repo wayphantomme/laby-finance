@@ -12,11 +12,20 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   imageUrl?: string;
+  // drafts typed loosely here; UnifiedChat will cast to TransactionDraft[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  drafts?: any[];
 }
 
 interface ChatSessionFull {
   id: string;
-  messages: { id: string; role: string; content: string; createdAt: string }[];
+  messages: {
+    id: string;
+    role: string;
+    content: string;
+    createdAt: string;
+    metadata?: { drafts?: unknown[]; imageUrl?: string } | null;
+  }[];
 }
 
 export default function AIPage() {
@@ -36,6 +45,8 @@ export default function AIPage() {
           id: m.id,
           role: m.role as "user" | "assistant",
           content: m.content,
+          imageUrl: m.metadata?.imageUrl ?? undefined,
+          drafts: m.metadata?.drafts ?? undefined,
         }))
       );
     }

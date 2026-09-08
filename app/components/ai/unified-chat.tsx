@@ -226,10 +226,23 @@ export function UnifiedChat({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Revoke all object URLs held by messages, then reset state
+  function revokeMessageImages(msgs: Message[]) {
+    msgs.forEach((m) => { if (m.imageUrl?.startsWith("blob:")) URL.revokeObjectURL(m.imageUrl); });
+  }
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      setMessages((prev) => { revokeMessageImages(prev); return prev; });
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Reset when sessionId changes (switching sessions)
   useEffect(() => {
     setCurrentSessionId(sessionId);
-    setMessages(initialMessages ?? []);
+    setMessages((prev) => { revokeMessageImages(prev); return initialMessages ?? []; });
     setInput("");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
@@ -316,6 +329,18 @@ export function UnifiedChat({
 
       const data = await res.json();
 
+      // Replace the temporary blob URL in the user message with the
+      // permanent Cloudinary URL returned by the server (if any)
+      if (data.imageUrl) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId ? { ...m, imageUrl: data.imageUrl as string } : m
+          )
+        );
+        // Revoke the blob URL now that we have the permanent URL
+        if (capturedImageUrl) URL.revokeObjectURL(capturedImageUrl);
+      }
+
       setMessages((prev) => [
         ...prev,
         {
@@ -326,7 +351,9 @@ export function UnifiedChat({
         },
       ]);
 
-      if (capturedImageUrl) URL.revokeObjectURL(capturedImageUrl);
+      // NOTE: capturedImageUrl is kept alive intentionally — it's still referenced
+      // by the user message bubble in state. Revoking it here would break the preview.
+      // Object URLs are cleaned up on chat reset (New chat) or component unmount.
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -482,7 +509,7 @@ export function UnifiedChat({
           <span>Paste image with Ctrl+V or use the attach button</span>
           {messages.length > 0 && (
             <button
-              onClick={() => { setMessages([]); setCurrentSessionId(null); onFirstMessage?.(null as unknown as string); }}
+              onClick={() => { revokeMessageImages(messages); setMessages([]); setCurrentSessionId(null); onFirstMessage?.(null as unknown as string); }}
               className="flex items-center gap-1 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
             >
               <RefreshCw className="h-3 w-3" /> New chat

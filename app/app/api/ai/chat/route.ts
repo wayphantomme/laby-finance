@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { formatRupiah } from "@/lib/format";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -115,6 +117,7 @@ export async function POST(req: NextRequest) {
     let imageBase64: string | null = null;
     let imageMimeType: string = "image/jpeg";
     let sessionId: string | null = null;
+    let uploadedImageUrl: string | null = null;
 
     if (contentType.includes("multipart/form-data")) {
       const form = await req.formData();
@@ -124,8 +127,17 @@ export async function POST(req: NextRequest) {
       const file = form.get("image") as File | null;
       if (file) {
         const buf = await file.arrayBuffer();
-        imageBase64 = Buffer.from(buf).toString("base64");
+        const imageBuffer = Buffer.from(buf);
+        imageBase64 = imageBuffer.toString("base64");
         imageMimeType = file.type || "image/jpeg";
+
+        // Upload to Cloudinary for permanent storage (shown in history)
+        try {
+          uploadedImageUrl = await uploadImageToCloudinary(imageBuffer, imageMimeType);
+        } catch (uploadErr) {
+          // Non-fatal: AI extraction still works, image just won't persist in history
+          console.warn("Cloudinary upload failed:", uploadErr);
+        }
       }
     } else {
       const body = await req.json();
@@ -239,8 +251,22 @@ ${financialContext}`;
       const lastUserMsg = messages[messages.length - 1];
       await prisma.chatMessage.createMany({
         data: [
-          { chatSessionId: sessionId, role: "user", content: lastUserMsg.content },
-          { chatSessionId: sessionId, role: "assistant", content: displayText },
+          {
+            chatSessionId: sessionId,
+            role: "user",
+            content: lastUserMsg.content,
+            // Persist Cloudinary URL so image is visible when loading history
+            metadata: uploadedImageUrl
+              ? ({ imageUrl: uploadedImageUrl } as Prisma.InputJsonValue)
+              : undefined,
+          },
+          {
+            chatSessionId: sessionId,
+            role: "assistant",
+            content: displayText,
+            // Persist drafts so they can be restored when loading session history
+            metadata: drafts?.length ? { drafts } as Prisma.InputJsonValue : undefined,
+          },
         ],
       });
 
@@ -258,7 +284,7 @@ ${financialContext}`;
       }
     }
 
-    return NextResponse.json({ content: displayText, drafts });
+    return NextResponse.json({ content: displayText, drafts, imageUrl: uploadedImageUrl });
   } catch (e) {
     console.error("AI chat error:", e);
     return NextResponse.json({ error: "AI request failed" }, { status: 500 });

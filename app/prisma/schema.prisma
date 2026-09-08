@@ -28,6 +28,7 @@ model User {
   auditLogs        AuditLog[]
   chatSessions     ChatSession[]
   recurringRules   RecurringRule[]
+  budgets          Budget[]
 }
 
 model AuthAccount {
@@ -86,6 +87,7 @@ model CoaAccount {
   children     CoaAccount[]       @relation("AccountChildren")
   journalLines JournalLine[]
   portfolios   PortfolioHolding[]
+  budgets      Budget[]
 }
 
 // ─── Journal (Double-Entry) ───────────────────────────────────────────────────
@@ -132,11 +134,17 @@ model PortfolioHolding {
   accountId    String
   assetName    String
   ticker       String?
+  // assetType: "stock_idx" | "stock_us" | "crypto" | "gold" | "mutual_fund" | "other"
+  assetType    String   @default("other")
   quantity     Float
-  avgBuyPrice  Int      // IDR sen
-  currentPrice Int      // IDR sen
+  lots         Int?     // for IDX stocks: lots (1 lot = 100 shares)
+  avgBuyPrice  Int      // IDR sen per unit/share
+  currentPrice Int      // IDR sen per unit/share
   currency     String   @default("IDR")
+  openingDate  DateTime @default(now())
+  notes        String?
   lastUpdated  DateTime @default(now())
+  deletedAt    DateTime?
 
   user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   account CoaAccount @relation(fields: [accountId], references: [id])
@@ -208,7 +216,27 @@ model ChatMessage {
   chatSessionId String
   role          String   // "user" | "assistant"
   content       String
+  metadata      Json?    // e.g. { drafts: TransactionDraft[] } for assistant messages
   createdAt     DateTime @default(now())
 
   session ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+}
+
+// ─── Budget ───────────────────────────────────────────────────────────────────
+
+model Budget {
+  id        String   @id @default(cuid())
+  userId    String
+  accountId String
+  month     Int      // 1-12
+  year      Int
+  amountSen Int      // budget target in IDR sen
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account CoaAccount @relation(fields: [accountId], references: [id])
+
+  @@unique([userId, accountId, month, year])
 }
