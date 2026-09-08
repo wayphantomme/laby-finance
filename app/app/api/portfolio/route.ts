@@ -10,7 +10,7 @@ const createSchema = z.object({
   assetType: z.enum(["stock_idx", "stock_us", "crypto", "gold", "mutual_fund", "other"]),
   quantity: z.number().positive(),
   lots: z.number().int().positive().optional(),
-  avgBuyPriceIdr: z.number().positive(), // per unit/share in IDR
+  avgBuyPriceIdr: z.number().min(0), // 0 = not set yet, user will fill manually
   openingDate: z.string().min(1),
   accountId: z.string().min(1),
   notes: z.string().optional(),
@@ -62,28 +62,30 @@ export async function POST(req: NextRequest) {
           quantity,
           lots: lots ?? null,
           avgBuyPrice: avgBuyPriceSen,
-          currentPrice: avgBuyPriceSen, // start with buy price
+          currentPrice: avgBuyPriceSen,
           openingDate: new Date(openingDate),
           notes: notes ?? null,
         },
       });
 
-      // Opening balance journal entry
-      await tx.journalEntry.create({
-        data: {
-          userId: session.user!.id!,
-          entryDate: new Date(openingDate),
-          description: `Opening balance: ${assetName} (${ticker})`,
-          source: "MANUAL",
-          status: "CONFIRMED",
-          lines: {
-            create: [
-              { accountId, debit: totalCostSen, credit: 0 },
-              { accountId: openingCapital.id, debit: 0, credit: totalCostSen },
-            ],
+      // Opening balance journal entry (only if buy price is set)
+      if (totalCostSen > 0) {
+        await tx.journalEntry.create({
+          data: {
+            userId: session.user!.id!,
+            entryDate: new Date(openingDate),
+            description: `Opening balance: ${assetName} (${ticker})`,
+            source: "MANUAL",
+            status: "CONFIRMED",
+            lines: {
+              create: [
+                { accountId, debit: totalCostSen, credit: 0 },
+                { accountId: openingCapital.id, debit: 0, credit: totalCostSen },
+              ],
+            },
           },
-        },
-      });
+        });
+      }
 
       return [h];
     });

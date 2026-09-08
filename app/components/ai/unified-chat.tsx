@@ -284,7 +284,7 @@ function HoldingDraftCard({
         size="sm"
         className="w-full"
         loading={saving}
-        disabled={!edited.accountId || edited.quantity <= 0 || edited.avgBuyPriceIdr <= 0}
+        disabled={!edited.accountId || edited.quantity <= 0}
         onClick={save}
       >
         Tambah ke Portfolio
