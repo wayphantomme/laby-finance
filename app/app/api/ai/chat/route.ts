@@ -88,6 +88,13 @@ Portfolio screenshots include:
 - Stock brokers: Ajaib, Stockbit, Gotrade, IPOT, BNI Sekuritas
 - Any screen showing asset names, tickers, quantities/balances
 
+EXTRACTION RULES (follow these exactly):
+1. Scan the ENTIRE image top-to-bottom — do NOT stop after the first token.
+2. Extract EVERY asset/token visible, even stablecoins (USDC, USDT, USDG) and small balances.
+3. If the list is scrollable or cut off, extract all that are visible.
+4. Each token = one entry in the array. Never merge or skip.
+5. For Phantom wallet: the list shows token name, quantity, and USD value — extract all rows.
+
 For PORTFOLIO screenshots, ALWAYS output a holdings JSON block at the end of your response:
 
 \`\`\`holdings
@@ -101,16 +108,25 @@ For PORTFOLIO screenshots, ALWAYS output a holdings JSON block at the end of you
     "avgBuyPrice": 0,
     "currency": "USD",
     "confidence": "high"
+  },
+  {
+    "assetName": "USD Coin",
+    "ticker": "USDC",
+    "assetType": "crypto",
+    "quantity": 383.98,
+    "lots": null,
+    "avgBuyPrice": 1,
+    "currency": "USD",
+    "confidence": "high"
   }
 ]
 \`\`\`
 
 assetType values: "stock_idx" (IDX stocks), "stock_us" (US stocks), "crypto", "gold", "mutual_fund", "other"
-avgBuyPrice: use 0 if not shown in screenshot — user will fill it in manually
+avgBuyPrice: use 1 for stablecoins (USDC, USDT, USDG, DAI, BUSD), use 0 for everything else (user fills manually)
 currency: "USD" for US/crypto assets, "IDR" for IDX stocks
 For IDX stocks: quantity = lots × 100, include both quantity and lots
 For crypto: quantity in exact units shown (e.g. 0.9376112 for SOL)
-For stablecoins (USDC, USDT, USDG): assetType = "crypto", use exact quantity
 DO NOT output any button, link, or "eksekusi" text — the app handles import automatically via the JSON block.
 
 Rules:
