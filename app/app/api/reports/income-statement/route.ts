@@ -10,9 +10,11 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const year = parseInt(searchParams.get("year") ?? String(new Date().getFullYear()));
+  const monthParam = searchParams.get("month");
+  const month = monthParam !== null ? parseInt(monthParam) : undefined;
   const format = searchParams.get("format"); // "csv" or null
 
-  const data = await computeIncomeStatement(session.user.id, year);
+  const data = await computeIncomeStatement(session.user.id, year, month);
 
   if (format === "csv") {
     const incomeRows = rowsToCsv(data.income, year, "Income");

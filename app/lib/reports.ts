@@ -68,10 +68,14 @@ function addToMonthly(m: MonthlyAmount, monthIdx: number, amount: number) {
 
 export async function computeIncomeStatement(
   userId: string,
-  year: number
+  year: number,
+  /** Optional: restrict to a single month (0–11). If omitted, returns full year. */
+  month?: number
 ): Promise<IncomeStatementData> {
-  const start = new Date(year, 0, 1);
-  const end = new Date(year, 11, 31, 23, 59, 59);
+  const start = month !== undefined ? new Date(year, month, 1) : new Date(year, 0, 1);
+  const end = month !== undefined
+    ? new Date(year, month + 1, 0, 23, 59, 59)
+    : new Date(year, 11, 31, 23, 59, 59);
 
   const lines = await prisma.journalLine.findMany({
     where: {
@@ -256,10 +260,14 @@ export async function computeBalanceSheet(
 
 export async function computeCashFlow(
   userId: string,
-  year: number
+  year: number,
+  /** Optional: restrict to a single month (0–11). If omitted, returns full year. */
+  month?: number
 ): Promise<CashFlowData> {
-  const start = new Date(year, 0, 1);
-  const end = new Date(year, 11, 31, 23, 59, 59);
+  const start = month !== undefined ? new Date(year, month, 1) : new Date(year, 0, 1);
+  const end = month !== undefined
+    ? new Date(year, month + 1, 0, 23, 59, 59)
+    : new Date(year, 11, 31, 23, 59, 59);
 
   const lines = await prisma.journalLine.findMany({
     where: {
