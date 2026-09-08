@@ -176,12 +176,42 @@ function HoldingDraftCard({
   draft: HoldingDraft;
   onSaved: () => void;
 }) {
+  const isUsd = draft.currency === "USD";
   const [edited, setEdited] = useState({ ...draft });
+  // priceInput: always in the currency shown to user (USD or IDR)
+  const [priceInput, setPriceInput] = useState(
+    isUsd ? "" : String(draft.avgBuyPriceIdr || "")
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [openingDate, setOpeningDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [usdRate, setUsdRate] = useState<number | null>(null);
+  const [rateLoading, setRateLoading] = useState(isUsd);
+
+  // Fetch USD/IDR rate once if asset is USD-denominated
+  useEffect(() => {
+    if (!isUsd) return;
+    fetch("/api/forex/rate")
+      .then((r) => r.json())
+      .then((d: { rate?: number }) => {
+        setUsdRate(d.rate ?? 16000);
+      })
+      .catch(() => setUsdRate(16000))
+      .finally(() => setRateLoading(false));
+  }, [isUsd]);
+
+  // Derived: IDR equivalent of the price input
+  const priceUsd = isUsd ? parseFloat(priceInput) || 0 : 0;
+  const priceIdr = isUsd
+    ? Math.round(priceUsd * (usdRate ?? 16000))
+    : parseFloat(priceInput) || 0;
+
+  // Sync avgBuyPriceIdr into edited whenever input changes
+  useEffect(() => {
+    setEdited((p) => ({ ...p, avgBuyPriceIdr: priceIdr }));
+  }, [priceIdr]);
 
   async function save() {
     if (!edited.accountId || edited.quantity <= 0) return;
@@ -222,8 +252,11 @@ function HoldingDraftCard({
     );
   }
 
+  const totalIdr = priceIdr * edited.quantity;
+
   return (
     <div className="rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 space-y-3">
+      {/* Header */}
       <div className="flex items-center gap-2">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
           <TrendingUp className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
@@ -237,7 +270,19 @@ function HoldingDraftCard({
         </Badge>
       </div>
 
+      {/* Exchange rate badge (USD assets only) */}
+      {isUsd && (
+        <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 px-2.5 py-1.5">
+          <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+            {rateLoading
+              ? "Fetching USD/IDR rate…"
+              : `1 USD = ${usdRate ? new Intl.NumberFormat("id-ID").format(usdRate) : "…"} IDR (live)`}
+          </span>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2">
+        {/* Quantity / Lot */}
         <Input
           label={edited.assetType === "stock_idx" ? "Jumlah Lot" : "Jumlah Unit"}
           type="number"
@@ -251,13 +296,24 @@ function HoldingDraftCard({
             }
           }}
         />
-        <Input
-          label="Harga Beli Rata-rata (IDR)"
-          type="number"
-          value={String(edited.avgBuyPriceIdr)}
-          onChange={(e) => setEdited((p) => ({ ...p, avgBuyPriceIdr: parseFloat(e.target.value) || 0 }))}
-          placeholder={edited.assetType === "stock_idx" ? "per lembar" : "per unit"}
-        />
+
+        {/* Price input — USD or IDR depending on asset currency */}
+        <div>
+          <Input
+            label={isUsd ? "Harga Beli (USD)" : "Harga Beli (IDR)"}
+            type="number"
+            value={priceInput}
+            onChange={(e) => setPriceInput(e.target.value)}
+            placeholder={isUsd ? "e.g. 150.00" : edited.assetType === "stock_idx" ? "per lembar" : "per unit"}
+          />
+          {/* Show IDR equivalent for USD inputs */}
+          {isUsd && priceUsd > 0 && !rateLoading && usdRate && (
+            <p className="mt-0.5 text-[10px] text-gray-400 dark:text-slate-500">
+              ≈ {formatRupiah(priceIdr * 100)} per unit
+            </p>
+          )}
+        </div>
+
         <div className="col-span-2">
           <Input
             label="Tanggal Opening Balance"
@@ -268,16 +324,29 @@ function HoldingDraftCard({
         </div>
       </div>
 
-      {edited.avgBuyPriceIdr > 0 && edited.quantity > 0 && (
-        <p className="text-xs text-gray-500 dark:text-slate-400">
-          Total modal:{" "}
-          <span className="font-medium text-gray-800 dark:text-slate-200">
-            {formatRupiah(Math.round(edited.avgBuyPriceIdr * edited.quantity * 100))}
-          </span>
-          {edited.assetType === "stock_idx" && edited.lots && (
-            <span className="ml-1 text-gray-400">({edited.lots} lot × 100 lembar × {formatRupiah(edited.avgBuyPriceIdr * 100)})</span>
+      {/* Total modal summary */}
+      {totalIdr > 0 && edited.quantity > 0 && (
+        <div className="rounded-lg bg-gray-50 dark:bg-slate-700/50 px-3 py-2 space-y-0.5">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500 dark:text-slate-400">Total modal</span>
+            <span className="font-semibold text-gray-900 dark:text-slate-100">
+              {formatRupiah(Math.round(totalIdr) * 100)}
+            </span>
+          </div>
+          {isUsd && priceUsd > 0 && (
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400 dark:text-slate-500">Dalam USD</span>
+              <span className="text-gray-500 dark:text-slate-400">
+                ${(priceUsd * edited.quantity).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
           )}
-        </p>
+          {edited.assetType === "stock_idx" && edited.lots && (
+            <p className="text-[10px] text-gray-400 dark:text-slate-500">
+              {edited.lots} lot × 100 lembar × {formatRupiah(priceIdr * 100)}
+            </p>
+          )}
+        </div>
       )}
 
       <Button

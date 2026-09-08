@@ -324,8 +324,13 @@ ${financialContext}`;
             chatSessionId: sessionId,
             role: "assistant",
             content: displayText,
-            // Persist drafts so they can be restored when loading session history
-            metadata: drafts?.length ? { drafts } as Prisma.InputJsonValue : undefined,
+            // Persist drafts + holdings so they can be restored from history
+            metadata: (drafts?.length || holdings?.length)
+              ? ({
+                  ...(drafts?.length ? { drafts } : {}),
+                  ...(holdings?.length ? { holdings } : {}),
+                } as Prisma.InputJsonValue)
+              : undefined,
           },
         ],
       });

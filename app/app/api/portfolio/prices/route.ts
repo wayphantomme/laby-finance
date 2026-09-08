@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getUsdToIdr } from "@/lib/forex";
 
 // ─── Price fetching helpers ───────────────────────────────────────────────────
 
@@ -36,17 +37,9 @@ async function fetchStockPrice(ticker: string): Promise<number | null> {
     if (!meta?.regularMarketPrice) return null;
 
     let priceIdr = meta.regularMarketPrice;
-    // Convert USD to IDR if US stock
     if (meta.currency === "USD") {
-      const usdIdrRes = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=idr",
-        { next: { revalidate: 3600 } }
-      );
-      if (usdIdrRes.ok) {
-        const usdData = await usdIdrRes.json() as { usd?: { idr?: number } };
-        const rate = usdData.usd?.idr ?? 16000;
-        priceIdr = meta.regularMarketPrice * rate;
-      }
+      const rate = await getUsdToIdr();
+      priceIdr = meta.regularMarketPrice * rate;
     }
     return Math.round(priceIdr);
   } catch {
@@ -54,10 +47,9 @@ async function fetchStockPrice(ticker: string): Promise<number | null> {
   }
 }
 
-// Gold price via Open Exchange Rates or fallback GoldAPI
+// Gold price via Yahoo Finance gold futures (GC=F)
 async function fetchGoldPriceIdr(): Promise<number | null> {
   try {
-    // GoldAPI.io free endpoint (XAU in USD, then convert)
     const res = await fetch(
       "https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d",
       { headers: { "User-Agent": "Mozilla/5.0" }, next: { revalidate: 300 } }
@@ -69,16 +61,9 @@ async function fetchGoldPriceIdr(): Promise<number | null> {
     const priceUsdPerOz = data.chart?.result?.[0]?.meta?.regularMarketPrice;
     if (!priceUsdPerOz) return null;
 
-    // Convert troy oz to gram, then to IDR
+    // Convert troy oz → gram → IDR
     const priceUsdPerGram = priceUsdPerOz / 31.1035;
-    const usdIdrRes = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=idr",
-      { next: { revalidate: 3600 } }
-    );
-    const rate = usdIdrRes.ok
-      ? ((await usdIdrRes.json()) as { usd?: { idr?: number } }).usd?.idr ?? 16000
-      : 16000;
-
+    const rate = await getUsdToIdr();
     return Math.round(priceUsdPerGram * rate);
   } catch {
     return null;
