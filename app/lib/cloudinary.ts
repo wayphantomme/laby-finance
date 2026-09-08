@@ -1,12 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure once — reads CLOUDINARY_URL automatically if set,
-// but we also set explicitly for clarity.
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_URL
-    ? undefined // parsed from CLOUDINARY_URL
-    : undefined,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true,
 });
 
@@ -28,7 +25,6 @@ export async function uploadImageToCloudinary(
   const result = await cloudinary.uploader.upload(dataUri, {
     folder,
     resource_type: "image",
-    // Auto-quality + format for smaller file size without visible loss
     quality: "auto",
     fetch_format: "auto",
   });
