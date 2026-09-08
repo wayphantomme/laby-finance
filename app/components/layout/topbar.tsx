@@ -28,8 +28,20 @@ export function Topbar({ userName, onMenuClick }: { userName?: string | null; on
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const titles: Record<string, string> = {
+    "/ai": "Chat",
+    "/dashboard": t.titles["/dashboard"] ?? "Dashboard",
+    "/transactions": t.titles["/transactions"] ?? "Transactions",
+    "/portfolio": "Portfolio",
+    "/accounts": t.titles["/accounts"] ?? "Chart of Accounts",
+    "/reports": t.titles["/reports"] ?? "Reports",
+    "/budget": "Budget",
+    "/recurring": "Recurring",
+    "/history": t.titles["/history"] ?? "Activity History",
+    "/docs": "Docs",
+  };
+
   const base = "/" + pathname.split("/")[1];
-  const titles = t.titles as Record<string, string>;
   const title = titles[base] ?? "Laby";
 
   const themeOptions = [

@@ -77,9 +77,35 @@ const SYSTEM_PROMPT_BASE = `You are a personal financial assistant for Laby, a p
 
 Your role:
 - Answer questions about the user's financial data clearly and concisely
-- When an image is provided, analyze it as a financial document (bank statement, e-wallet screenshot, receipt, etc.)
-- Extract transactions from images and return them as structured JSON drafts
+- When an image is provided, analyze it as a financial document (bank statement, e-wallet screenshot, receipt, portfolio statement, etc.)
+- Extract transactions OR portfolio holdings from images and return them as structured JSON
 - Help interpret financial reports and suggest improvements
+
+IMPORTANT: When you see a portfolio/investment screenshot (broker app, exchange, etc.), detect it and output holdings instead of transactions.
+
+For PORTFOLIO screenshots (broker like Ajaib, Stockbit, Pintu, Indodax, etc.):
+Output a holdings JSON block at the end:
+
+\`\`\`holdings
+[
+  {
+    "assetName": "Bank Central Asia",
+    "ticker": "BBCA",
+    "assetType": "stock_idx",
+    "quantity": 1000,
+    "lots": 10,
+    "avgBuyPrice": 9500,
+    "currency": "IDR",
+    "confidence": "high"
+  }
+]
+\`\`\`
+
+assetType values: "stock_idx" (IDX stocks), "stock_us" (US stocks), "crypto", "gold", "mutual_fund", "other"
+avgBuyPrice: per share/unit in IDR (not lot)
+For IDX stocks: quantity = lots × 100, include both quantity and lots
+For crypto: quantity in units (e.g. 0.05 for BTC)
+For gold: quantity in grams
 
 Rules:
 - Base all answers on the actual financial data below — never fabricate numbers
@@ -211,11 +237,40 @@ ${financialContext}`;
     let drafts: unknown[] | null = null;
     const txMatch = responseText.match(/```transactions\s*([\s\S]*?)```/);
     if (txMatch) {
+      try { drafts = JSON.parse(txMatch[1].trim()); } catch { drafts = null; }
+    }
+
+    // Parse portfolio holdings from response if present
+    let holdings: unknown[] | null = null;
+    const holdingsMatch = responseText.match(/```holdings\s*([\s\S]*?)```/);
+    if (holdingsMatch) {
       try {
-        drafts = JSON.parse(txMatch[1].trim());
-      } catch {
-        drafts = null;
-      }
+        const rawHoldings = JSON.parse(holdingsMatch[1].trim());
+        // Enrich with account IDs
+        const investmentAccounts = await prisma.coaAccount.findMany({
+          where: { isActive: true, code: { startsWith: "1-3" }, NOT: { code: { endsWith: "-000" } } },
+          select: { id: true, code: true, nameEn: true },
+        });
+        const accountByType: Record<string, string> = {
+          stock_idx: investmentAccounts.find((a) => a.code === "1-301")?.id ?? "",
+          stock_us: investmentAccounts.find((a) => a.code === "1-301")?.id ?? "",
+          crypto: investmentAccounts.find((a) => a.code === "1-302")?.id ?? "",
+          mutual_fund: investmentAccounts.find((a) => a.code === "1-303")?.id ?? "",
+          gold: investmentAccounts.find((a) => a.code === "1-304")?.id ?? "",
+          other: investmentAccounts.find((a) => a.code === "1-301")?.id ?? "",
+        };
+        holdings = (rawHoldings as { assetName?: string; ticker?: string; assetType?: string; quantity?: number; lots?: number; avgBuyPrice?: number; currency?: string; confidence?: string }[]).map((h) => ({
+          assetName: h.assetName ?? h.ticker ?? "",
+          ticker: (h.ticker ?? "").toUpperCase(),
+          assetType: h.assetType ?? "other",
+          quantity: h.quantity ?? 0,
+          lots: h.lots ?? null,
+          avgBuyPriceIdr: h.avgBuyPrice ?? 0,
+          accountId: accountByType[h.assetType ?? "other"] ?? "",
+          currency: h.currency ?? "IDR",
+          confidence: h.confidence ?? "low",
+        }));
+      } catch { holdings = null; }
     }
 
     // Enrich drafts with account IDs
@@ -243,8 +298,7 @@ ${financialContext}`;
       });
     }
 
-    // Strip the transactions JSON block from display text
-    const displayText = responseText.replace(/```transactions[\s\S]*?```/g, "").trim();
+    const displayText = responseText.replace(/```transactions[\s\S]*?```/g, "").replace(/```holdings[\s\S]*?```/g, "").trim();
 
     // Persist messages to DB if sessionId provided
     if (sessionId) {
@@ -284,7 +338,7 @@ ${financialContext}`;
       }
     }
 
-    return NextResponse.json({ content: displayText, drafts, imageUrl: uploadedImageUrl });
+    return NextResponse.json({ content: displayText, drafts, holdings, imageUrl: uploadedImageUrl });
   } catch (e) {
     console.error("AI chat error:", e);
     return NextResponse.json({ error: "AI request failed" }, { status: 500 });

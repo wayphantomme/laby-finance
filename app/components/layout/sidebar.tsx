@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ArrowLeftRight, BookOpen,
   TrendingUp, PiggyBank, History, LogOut,
-  MessageSquare, X, BookMarked,
+  MessageSquare, X, BookMarked, LineChart, Repeat, Target,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -20,8 +20,11 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     { href: "/ai",           label: t.nav.chat,         icon: MessageSquare },
     { href: "/dashboard",    label: t.nav.dashboard,    icon: LayoutDashboard },
     { href: "/transactions", label: t.nav.transactions, icon: ArrowLeftRight },
+    { href: "/portfolio",    label: "Portfolio",        icon: LineChart },
     { href: "/accounts",     label: t.nav.accounts,     icon: BookOpen },
     { href: "/reports",      label: t.nav.reports,      icon: TrendingUp },
+    { href: "/budget",       label: "Budget",           icon: Target },
+    { href: "/recurring",    label: "Recurring",        icon: Repeat },
     { href: "/history",      label: t.nav.history,      icon: History },
   ];
 
