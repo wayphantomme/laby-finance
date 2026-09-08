@@ -37,8 +37,8 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
 
   const sizes = {
     sm: "max-w-sm",
-    md: "max-w-lg",
-    lg: "max-w-2xl",
+    md: "max-w-md",
+    lg: "max-w-xl",
   };
 
   return (
@@ -57,7 +57,7 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
           />
 
           {/* Dialog */}
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-3 pb-3 sm:p-6">
             <motion.div
               ref={contentRef}
               initial={{ opacity: 0, y: 40, scale: 0.97 }}
@@ -69,12 +69,12 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
               aria-label={title}
               className={cn(
                 "relative w-full bg-white dark:bg-slate-800 shadow-xl",
-                // Mobile: slide up from bottom, full width, rounded top
-                "rounded-t-2xl sm:rounded-2xl",
+                // Mobile: rounded all corners with side padding from parent
+                "rounded-2xl",
                 // Desktop: centered with max-width
-                "sm:" + sizes[size],
+                sizes[size],
                 // Max height with scroll
-                "max-h-[92dvh] sm:max-h-[85dvh] flex flex-col"
+                "max-h-[88dvh] sm:max-h-[85dvh] flex flex-col"
               )}
               onClick={(e) => e.stopPropagation()}
             >
