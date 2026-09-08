@@ -17,51 +17,60 @@ function Section({
   rows,
   total,
   totalLabel,
-  indent = false,
 }: {
   title: string;
   rows: ReportRow[];
   total: number;
   totalLabel: string;
-  indent?: boolean;
 }) {
   return (
-    <div className="mb-1">
-      <div className="py-1.5 border-b border-gray-200 dark:border-slate-600">
+    <div className="mb-6">
+      {/* Section label */}
+      <div className="py-1.5 px-4 border-b border-gray-200 dark:border-slate-600">
         <span className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-slate-400">
           {title}
         </span>
       </div>
 
-      {rows.length === 0 ? (
-        <div className="py-3 pl-6 text-sm text-gray-400 dark:text-slate-500 italic">No entries</div>
-      ) : (
-        rows.map((row) => (
-          <div
-            key={row.accountId}
-            className="flex items-center justify-between py-1.5 border-b border-gray-50 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors"
-          >
-            <div className={cn("flex items-baseline gap-2 text-sm text-gray-700 dark:text-slate-300", indent ? "pl-8" : "pl-6")}>
-              <span className="font-mono text-xs text-gray-400 dark:text-slate-500 shrink-0">{row.code}</span>
-              <span>{row.nameEn}</span>
-            </div>
-            <div className={cn(
-              "tabular-nums text-sm pr-4 min-w-[10rem] text-right",
-              row.monthly.total === 0 ? "text-gray-300 dark:text-slate-600" : "text-gray-800 dark:text-slate-200"
-            )}>
-              {row.monthly.total === 0 ? "—" : formatRupiah(row.monthly.total)}
-            </div>
-          </div>
-        ))
-      )}
-
-      {/* Total */}
-      <div className="flex items-center justify-between py-2 border-t-2 border-b border-gray-300 dark:border-slate-500 bg-gray-50 dark:bg-slate-800/60">
-        <div className="pl-4 text-sm font-bold text-gray-800 dark:text-slate-200">{totalLabel}</div>
-        <div className="pr-4 tabular-nums text-sm font-bold text-gray-900 dark:text-slate-100 min-w-[10rem] text-right">
-          {formatRupiah(total)}
-        </div>
-      </div>
+      <table className="w-full border-collapse">
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td className="py-3 pl-8 text-sm text-gray-400 dark:text-slate-500 italic" colSpan={2}>
+                No entries
+              </td>
+            </tr>
+          ) : (
+            rows.map((row) => (
+              <tr
+                key={row.accountId}
+                className="border-b border-gray-50 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors"
+              >
+                <td className="py-2 pl-8 pr-4 text-sm text-gray-700 dark:text-slate-300 whitespace-nowrap">
+                  <span className="font-mono text-xs text-gray-400 dark:text-slate-500 mr-2">{row.code}</span>
+                  {row.nameEn}
+                </td>
+                <td className={cn(
+                  "py-2 px-4 text-right tabular-nums text-sm whitespace-nowrap w-40",
+                  row.monthly.total === 0 ? "text-gray-300 dark:text-slate-600" : "text-gray-800 dark:text-slate-200"
+                )}>
+                  {row.monthly.total === 0 ? "—" : formatRupiah(row.monthly.total)}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+        <tfoot>
+          <tr className="border-t-2 border-gray-300 dark:border-slate-500 bg-gray-50 dark:bg-slate-800/60">
+            <td className="py-2.5 pl-4 pr-4 text-sm font-bold text-gray-800 dark:text-slate-200 whitespace-nowrap">
+              {totalLabel}
+            </td>
+            <td className="py-2.5 px-4 text-right tabular-nums text-sm font-bold text-gray-900 dark:text-slate-100 whitespace-nowrap w-40">
+              {formatRupiah(total)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   );
 }
@@ -87,20 +96,21 @@ export function StatementBalance({ data }: Props) {
 
       {/* Balance indicator */}
       <div className={cn(
-        "flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium mb-6",
+        "flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium mb-6 border",
         data.isBalanced
-          ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
-          : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
+          ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
+          : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
       )}>
         {data.isBalanced
           ? <CheckCircle className="h-4 w-4 shrink-0" />
           : <AlertCircle className="h-4 w-4 shrink-0" />}
         {data.isBalanced
-          ? `Balanced · Assets = Liabilities + Equity`
-          : `Imbalance detected · Assets ≠ Liabilities + Equity`}
+          ? "Balanced · Assets = Liabilities + Equity"
+          : "Imbalance detected · Assets ≠ Liabilities + Equity"}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      {/* Two-column layout on large screens */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left: Assets */}
         <div>
           <Section
@@ -112,7 +122,7 @@ export function StatementBalance({ data }: Props) {
         </div>
 
         {/* Right: Liabilities + Equity */}
-        <div className="space-y-6">
+        <div>
           <Section
             title="Liabilities"
             rows={data.liabilities}
@@ -126,17 +136,17 @@ export function StatementBalance({ data }: Props) {
             totalLabel="Total Equity"
           />
 
-          {/* Liabilities + Equity grand total */}
-          <div className="flex items-center justify-between py-3 border-t-2 border-b-4 border-double border-gray-400 dark:border-slate-400 bg-gray-100 dark:bg-slate-800">
-            <div className="pl-4 text-sm font-extrabold text-gray-900 dark:text-slate-100">
+          {/* Grand total */}
+          <div className="flex items-center justify-between py-3 px-4 border-t-2 border-b-4 border-double border-gray-400 dark:border-slate-400 bg-gray-100 dark:bg-slate-800 rounded-b">
+            <span className="text-sm font-extrabold text-gray-900 dark:text-slate-100 whitespace-nowrap">
               Total Liabilities + Equity
-            </div>
-            <div className={cn(
-              "pr-4 tabular-nums text-sm font-extrabold min-w-[10rem] text-right",
+            </span>
+            <span className={cn(
+              "tabular-nums text-sm font-extrabold whitespace-nowrap ml-8",
               data.isBalanced ? "text-gray-900 dark:text-slate-100" : "text-red-600 dark:text-red-400"
             )}>
               {formatRupiah(totalLiabEquity)}
-            </div>
+            </span>
           </div>
         </div>
       </div>
