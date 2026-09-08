@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, MessageSquare, RefreshCw } from "lucide-react";
+import { Plus, Trash2, MessageSquare, RefreshCw, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +39,7 @@ export function ChatHistory({ activeSessionId, onSelectSession, onNewChat, refre
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
     setLoading(true);
@@ -53,18 +54,71 @@ export function ChatHistory({ activeSessionId, onSelectSession, onNewChat, refre
 
   useEffect(() => { fetchSessions(); }, [fetchSessions, refreshKey]);
 
-  async function handleDelete(e: React.MouseEvent, id: string) {
+  function handleDelete(e: React.MouseEvent, id: string) {
     e.stopPropagation();
-    if (!confirm("Delete this conversation?")) return;
-    setDeleting(id);
-    await fetch(`/api/ai/sessions/${id}`, { method: "DELETE" });
+    setConfirmId(id);
+  }
+
+  async function confirmDelete() {
+    if (!confirmId) return;
+    setDeleting(confirmId);
+    setConfirmId(null);
+    await fetch(`/api/ai/sessions/${confirmId}`, { method: "DELETE" });
+    if (activeSessionId === confirmId) onNewChat();
     setDeleting(null);
-    if (activeSessionId === id) onNewChat();
     fetchSessions();
   }
 
   return (
     <div className="flex flex-col h-full">
+
+      {/* ── Delete confirm modal ── */}
+      <AnimatePresence>
+        {confirmId && (
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+            onClick={() => setConfirmId(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 8 }}
+              transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+              className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 shadow-xl p-5 space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20">
+                  <AlertTriangle className="h-4.5 w-4.5 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Delete conversation?</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">This action cannot be undone.</p>
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setConfirmId(null)}
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="rounded-lg px-4 py-2 text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* New chat button */}
       <div className="p-3 border-b border-gray-100 dark:border-slate-700">
         <button
