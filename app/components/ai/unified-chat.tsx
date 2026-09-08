@@ -307,7 +307,8 @@ export function UnifiedChat({
         const sessData = await sessRes.json();
         activeSessionId = sessData.session?.id ?? null;
         setCurrentSessionId(activeSessionId);
-        if (activeSessionId) onFirstMessage?.(activeSessionId);
+        // NOTE: onFirstMessage is called AFTER the response is persisted below,
+        // so the history sidebar refreshes with the actual messages already saved.
       }
 
       let res: Response;
@@ -336,8 +337,9 @@ export function UnifiedChat({
             m.id === msgId ? { ...m, imageUrl: data.imageUrl as string } : m
           )
         );
-        // Revoke the blob URL now that we have the permanent URL
-        if (capturedImageUrl) URL.revokeObjectURL(capturedImageUrl);
+        // Revoke blob URL after React has had a chance to re-render with
+        // the permanent Cloudinary URL (defer to next tick)
+        if (capturedImageUrl) setTimeout(() => URL.revokeObjectURL(capturedImageUrl!), 500);
       }
 
       setMessages((prev) => [
@@ -349,6 +351,10 @@ export function UnifiedChat({
           drafts: res.ok && data.drafts?.length ? data.drafts : undefined,
         },
       ]);
+
+      // Notify parent AFTER messages are persisted — so history sidebar
+      // refreshes with the correct message count, not a 0-msg "New conversation"
+      if (activeSessionId) onFirstMessage?.(activeSessionId);
 
       // NOTE: capturedImageUrl is kept alive intentionally — it's still referenced
       // by the user message bubble in state. Revoking it here would break the preview.
