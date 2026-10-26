@@ -1,3 +1,10 @@
+/*
+ * PARTIAL-FAILURE CAVEAT: This seed runs in two passes — root accounts first,
+ * then children. If pass 1 fails mid-way, the codeToId map will be incomplete
+ * and a re-run will write parentId: null for children whose parents were not
+ * inserted during the failed run. Always run the full seed from scratch after
+ * any partial failure; a re-run does NOT self-heal this case.
+ */
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();

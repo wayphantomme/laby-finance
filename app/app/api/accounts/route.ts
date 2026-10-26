@@ -8,6 +8,12 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  /*
+   * CoaAccount is a shared, userId-free lookup table readable by all authenticated
+   * users. This intentional design means all authenticated users see the same chart
+   * of accounts. Write access must never be added to this file without an admin-role
+   * guard (out of scope for this iteration).
+   */
   const accounts = await prisma.coaAccount.findMany({
     where: { isActive: true },
     orderBy: { sortOrder: "asc" },

@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Create lib/rate-limit.ts — the rate-limit utility with Upstash Redis (prod) and in-memory Map (dev) backends. Install @upstash/ratelimit@2.2.0 and @upstash/redis@1.40.0 as exact-pinned dependencies. Add comment-only annotations to 4 files (accounts, forex/rate, auth/[...nextauth], prisma/seed.ts). This FEAT is independent of FEAT-002 and must complete first because FEAT-002 imports from @/lib/rate-limit.",
+  "status": "completed",
+  "steps": [
+    "1. In /Users/wayphantomme/Documents/laby/app/package.json, add to 'dependencies': '@upstash/ratelimit': '2.2.0' and '@upstash/redis': '1.40.0' (exact versions, no caret). Run `npm install` from /Users/wayphantomme/Documents/laby/app.",
+    "2. Create /Users/wayphantomme/Documents/laby/app/lib/rate-limit.ts with the full implementation as specified in 04-plan.md Step 2. Key requirements: (a) USE_UPSTASH module-level boolean, (b) upstashRedis is the ONLY module-level singleton — NO upstashRatelimit module-level variable, (c) checkUpstash creates a new Ratelimit instance per call reusing the Redis singleton, (d) in-memory eviction threshold is 100 (not 500), (e) try/catch wraps entire checkRateLimit body, fail-open with resetAt:0 sentinel, (f) rateLimitHeaders returns {} when resetAt===0, (g) import type { Redis } from '@upstash/redis' at top for type declaration.",
+    "3. Add file-level partial-failure comment to /Users/wayphantomme/Documents/laby/app/prisma/seed.ts at the very top before the import statement.",
+    "4. Add CoaAccount shared-table block comment to /Users/wayphantomme/Documents/laby/app/app/api/accounts/route.ts immediately above the prisma.coaAccount.findMany call.",
+    "5. Add one-line comment '// Public endpoint — no user data, no userId filter required.' to /Users/wayphantomme/Documents/laby/app/app/api/forex/rate/route.ts immediately above 'export async function GET()'.",
+    "6. Add one-line deferred comment to /Users/wayphantomme/Documents/laby/app/app/api/auth/[...nextauth]/route.ts at the top of the file before the import: '// IP-based rate limiting for the NextAuth credentials callback requires middleware-level interception (not a direct route edit) and is deferred to a future iteration.'"
+  ],
+  "acceptance_criteria": [
+    "lib/rate-limit.ts exists and exports checkRateLimit, getClientIp, rateLimitHeaders, and RateLimitResult",
+    "No upstashRatelimit module-level variable exists in lib/rate-limit.ts",
+    "In-memory eviction threshold in lib/rate-limit.ts is 100 (not 500)",
+    "package.json contains '@upstash/ratelimit': '2.2.0' and '@upstash/redis': '1.40.0' with no caret prefix",
+    "node_modules/@upstash/ratelimit and node_modules/@upstash/redis directories exist after npm install",
+    "`npx tsc --noEmit` exits with code 0 and zero errors"
+  ],
+  "verification": [
+    "cd /Users/wayphantomme/Documents/laby/app && npx tsc --noEmit — must exit 0 with zero errors",
+    "cd /Users/wayphantomme/Documents/laby/app && npm run build — must exit 0 (prisma generate + next build)"
+  ],
+  "blocked_reason": null,
+  "findings": "lib/rate-limit.ts is created and exports checkRateLimit, getClientIp, rateLimitHeaders (as function), and the RateLimitResult interface. The USE_UPSTASH flag uses both UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars. FEAT-002 may import from @/lib/rate-limit without issue — all four public exports are available. Both @upstash/ratelimit@2.2.0 and @upstash/redis@1.40.0 are installed at exact versions (no caret). The four comment-only files are untouched functionally. npx tsc --noEmit and npm run build both exit 0."
+}

@@ -13,6 +13,8 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@upstash/ratelimit": "2.2.0",
+    "@upstash/redis": "1.40.0",
     "@auth/prisma-adapter": "^2.10.0",
     "@google/generative-ai": "^0.24.1",
     "@neondatabase/serverless": "^1.1.0",

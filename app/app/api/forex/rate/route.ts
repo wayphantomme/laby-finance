@@ -7,6 +7,7 @@ import { getUsdToIdr } from "@/lib/forex";
  * Cached 1 hour at the fetch level; also set Cache-Control header
  * so the browser/CDN can cache for 5 minutes.
  */
+// Public endpoint — no user data, no userId filter required.
 export async function GET() {
   const rate = await getUsdToIdr();
   return NextResponse.json(
