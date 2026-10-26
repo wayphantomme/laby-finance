@@ -1,5 +1,16 @@
 import type { Redis } from "@upstash/redis";
 
+// ── Rate-limit key design ─────────────────────────────────────────────────────
+// Most protected routes use a per-user, per-resource bucket:
+//   rl:<resource>:<userId>  (e.g. "rl:transactions:abc123", "rl:ai:abc123")
+// This ensures one resource class cannot exhaust another user's quota.
+// The only intentional shared-bucket routes are /api/register and
+// /api/auth/callback/credentials, which are keyed by IP:
+//   rl:register:<ip>   (10 req / 15 min)
+//   rl:login:<ip>      (10 req / 15 min)
+// All other routes use 200 req / 3600 s per user per resource.
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Backend selection: true only when both Upstash env vars are present.
 // Evaluated once at module load; never changes at runtime.
 const USE_UPSTASH =

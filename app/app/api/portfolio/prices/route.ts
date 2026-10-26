@@ -92,50 +92,57 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
   }
 
-  const { holdings } = await req.json() as {
-    holdings: { id: string; ticker: string; assetType: string }[];
-  };
+  try {
+    const { holdings } = await req.json() as {
+      holdings: { id: string; ticker: string; assetType: string }[];
+    };
 
-  const prices: Record<string, number | null> = {};
+    const prices: Record<string, number | null> = {};
 
-  // Group by type
-  const cryptos = holdings.filter((h) => h.assetType === "crypto");
-  const stocksIdx = holdings.filter((h) => h.assetType === "stock_idx");
-  const stocksUs = holdings.filter((h) => h.assetType === "stock_us");
-  const goldHoldings = holdings.filter((h) => h.assetType === "gold");
+    // Group by type
+    const cryptos = holdings.filter((h) => h.assetType === "crypto");
+    const stocksIdx = holdings.filter((h) => h.assetType === "stock_idx");
+    const stocksUs = holdings.filter((h) => h.assetType === "stock_us");
+    const goldHoldings = holdings.filter((h) => h.assetType === "gold");
 
-  // Fetch crypto prices in batch
-  if (cryptos.length) {
-    const ids = cryptos.map((h) => CRYPTO_TICKER_TO_ID[h.ticker.toUpperCase()] ?? h.ticker.toLowerCase());
-    const cryptoPrices = await fetchCryptoPrices(ids);
-    for (const h of cryptos) {
-      const geckoId = CRYPTO_TICKER_TO_ID[h.ticker.toUpperCase()] ?? h.ticker.toLowerCase();
-      prices[h.id] = cryptoPrices[geckoId] ?? null;
+    // Fetch crypto prices in batch
+    if (cryptos.length) {
+      const ids = cryptos.map((h) => CRYPTO_TICKER_TO_ID[h.ticker.toUpperCase()] ?? h.ticker.toLowerCase());
+      const cryptoPrices = await fetchCryptoPrices(ids);
+      for (const h of cryptos) {
+        const geckoId = CRYPTO_TICKER_TO_ID[h.ticker.toUpperCase()] ?? h.ticker.toLowerCase();
+        prices[h.id] = cryptoPrices[geckoId] ?? null;
+      }
     }
-  }
 
-  // Fetch IDX stocks
-  await Promise.all(
-    stocksIdx.map(async (h) => {
-      const ticker = h.ticker.endsWith(".JK") ? h.ticker : `${h.ticker}.JK`;
-      prices[h.id] = await fetchStockPrice(ticker);
-    })
-  );
+    // Fetch IDX stocks
+    await Promise.all(
+      stocksIdx.map(async (h) => {
+        const ticker = h.ticker.endsWith(".JK") ? h.ticker : `${h.ticker}.JK`;
+        prices[h.id] = await fetchStockPrice(ticker);
+      })
+    );
 
-  // Fetch US stocks
-  await Promise.all(
-    stocksUs.map(async (h) => {
-      prices[h.id] = await fetchStockPrice(h.ticker);
-    })
-  );
+    // Fetch US stocks
+    await Promise.all(
+      stocksUs.map(async (h) => {
+        prices[h.id] = await fetchStockPrice(h.ticker);
+      })
+    );
 
-  // Fetch gold price (per gram in IDR)
-  if (goldHoldings.length) {
-    const goldPrice = await fetchGoldPriceIdr();
-    for (const h of goldHoldings) {
-      prices[h.id] = goldPrice;
+    // Fetch gold price (per gram in IDR)
+    if (goldHoldings.length) {
+      const goldPrice = await fetchGoldPriceIdr();
+      for (const h of goldHoldings) {
+        prices[h.id] = goldPrice;
+      }
     }
-  }
 
-  return NextResponse.json({ prices }, { headers: rlHeaders });
+    return NextResponse.json({ prices }, { headers: rlHeaders });
+  } catch {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500, headers: rlHeaders }
+    );
+  }
 }
