@@ -16,7 +16,20 @@ export const metadata: Metadata = {
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: "/apple-touch-icon.png",
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    shortcut: "/favicon.svg",
+  },
+  openGraph: {
+    title: "Laby | Personal Finance",
+    description: "Personal financial statements, done properly.",
+    images: [{ url: "/og-image.png", width: 630, height: 630, alt: "Laby" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Laby | Personal Finance",
+    description: "Personal financial statements, done properly.",
+    images: ["/og-image.png"],
   },
   appleWebApp: {
     capable: true,

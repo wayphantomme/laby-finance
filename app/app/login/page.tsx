@@ -3,10 +3,33 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { PiggyBank, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/lib/i18n/locale-context";
+
+// Lettermark — inline SVG so it renders at any size with no raster blur
+function LabyLogo({ size = 64 }: { size?: number }) {
+  const r = Math.round(size * 0.22);
+  const fontSize = Math.round(size * 0.58);
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width={size} height={size} rx={r} fill="#DC2626" />
+      <text
+        x={size / 2}
+        y={size / 2}
+        dominantBaseline="central"
+        textAnchor="middle"
+        fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif"
+        fontWeight="700"
+        fontSize={fontSize}
+        fill="white"
+      >
+        L
+      </text>
+    </svg>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,15 +62,17 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 px-4">
       <div className="w-full max-w-sm">
+
+        {/* Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-600 mb-3">
-            <PiggyBank className="h-6 w-6 text-white" />
+          <div className="mb-3">
+            <LabyLogo size={64} />
           </div>
           <h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">{t.login.title}</h1>
           <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{t.login.subtitle}</p>
         </div>
 
-        {/* Demo account banner */}
+        {/* Demo banner */}
         <button
           type="button"
           onClick={fillDemo}
@@ -57,14 +82,15 @@ export default function LoginPage() {
             <Sparkles className="h-4 w-4 text-primary-600 dark:text-primary-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-primary-700 dark:text-primary-300">Coba Demo</p>
+            <p className="text-xs font-semibold text-primary-700 dark:text-primary-300">Try Demo</p>
             <p className="text-xs text-primary-500 dark:text-primary-400 mt-0.5">
               demo@laby.app · demo1234
             </p>
           </div>
-          <span className="text-xs text-primary-500 dark:text-primary-400 shrink-0">Klik untuk isi →</span>
+          <span className="text-xs text-primary-500 dark:text-primary-400 shrink-0">Click to fill →</span>
         </button>
 
+        {/* Login form */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input

@@ -4,13 +4,30 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ArrowLeftRight, BookOpen,
-  TrendingUp, PiggyBank, History, LogOut,
+  TrendingUp, History, LogOut,
   MessageSquare, X, BookMarked, LineChart, Repeat, Target,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale } from "@/lib/i18n/locale-context";
+
+function LabyMark() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="7" fill="#DC2626" />
+      <text
+        x="16" y="16"
+        dominantBaseline="central"
+        textAnchor="middle"
+        fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif"
+        fontWeight="700"
+        fontSize="19"
+        fill="white"
+      >L</text>
+    </svg>
+  );
+}
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
@@ -31,8 +48,8 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
   const navContent = (
     <>
       <div className="flex h-16 items-center gap-2.5 border-b border-gray-100 dark:border-slate-700 px-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-          <PiggyBank className="h-4 w-4 text-white" />
+        <div className="shrink-0">
+          <LabyMark />
         </div>
         <div className="flex-1">
           <p className="text-base font-semibold text-gray-900 dark:text-slate-100 leading-none">Laby</p>
