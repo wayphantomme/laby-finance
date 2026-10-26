@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildJournalLines } from "@/lib/accounting";
 import { idrToSen } from "@/lib/format";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 const createSchema = z.object({
   date: z.string().min(1),
@@ -22,6 +23,12 @@ export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
   }
 
   const { searchParams } = new URL(req.url);
@@ -46,7 +53,7 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
-  return NextResponse.json({ entries, total, page, limit });
+  return NextResponse.json({ entries, total, page, limit }, { headers: rlHeaders });
 }
 
 export async function POST(req: NextRequest) {
@@ -55,13 +62,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   try {
     const body = await req.json();
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid input", details: parsed.error.flatten() },
-        { status: 400 }
+        { status: 400, headers: rlHeaders }
       );
     }
 
@@ -100,9 +113,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ entry }, { status: 201 });
+    return NextResponse.json({ entry }, { status: 201, headers: rlHeaders });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: rlHeaders });
   }
 }

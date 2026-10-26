@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 // GET /api/ai/sessions — list all sessions for the user
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
   }
 
   const sessions = await prisma.chatSession.findMany({
@@ -22,7 +29,7 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({ sessions });
+  return NextResponse.json({ sessions }, { headers: rlHeaders });
 }
 
 // POST /api/ai/sessions — create a new session
@@ -32,6 +39,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const body = await req.json().catch(() => ({}));
   const title = body.title ?? null;
 
@@ -39,5 +52,5 @@ export async function POST(req: NextRequest) {
     data: { userId: session.user.id, title },
   });
 
-  return NextResponse.json({ session: chatSession }, { status: 201 });
+  return NextResponse.json({ session: chatSession }, { status: 201, headers: rlHeaders });
 }

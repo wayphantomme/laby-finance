@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildJournalLines } from "@/lib/accounting";
 import { idrToSen } from "@/lib/format";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -18,16 +19,23 @@ function nextDate(current: Date, frequency: string): Date {
 export async function PATCH(req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const { id } = await params;
 
   const rule = await prisma.recurringRule.findFirst({ where: { id, userId: session.user.id } });
-  if (!rule) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!rule) return NextResponse.json({ error: "Not found" }, { status: 404, headers: rlHeaders });
 
   const body = await req.json();
 
   if (body.action === "toggle") {
     const updated = await prisma.recurringRule.update({ where: { id }, data: { isActive: !rule.isActive } });
-    return NextResponse.json({ rule: updated });
+    return NextResponse.json({ rule: updated }, { headers: rlHeaders });
   }
 
   if (body.action === "run") {
@@ -55,7 +63,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       });
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: rlHeaders });
   }
 
   // General update
@@ -67,16 +75,23 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       ...(body.isActive !== undefined && { isActive: body.isActive }),
     },
   });
-  return NextResponse.json({ rule: updated });
+  return NextResponse.json({ rule: updated }, { headers: rlHeaders });
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const { id } = await params;
 
   const rule = await prisma.recurringRule.findFirst({ where: { id, userId: session.user.id } });
-  if (!rule) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!rule) return NextResponse.json({ error: "Not found" }, { status: 404, headers: rlHeaders });
   await prisma.recurringRule.delete({ where: { id } });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true }, { headers: rlHeaders });
 }

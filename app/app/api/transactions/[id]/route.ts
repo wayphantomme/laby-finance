@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildJournalLines } from "@/lib/accounting";
 import { idrToSen } from "@/lib/format";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 const editSchema = z.object({
   date: z.string().min(1),
@@ -23,6 +24,12 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const { id } = await params;
 
   const existing = await prisma.journalEntry.findFirst({
@@ -30,14 +37,14 @@ export async function PATCH(
     include: { lines: true },
   });
   if (!existing) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Not found" }, { status: 404, headers: rlHeaders });
   }
 
   try {
     const body = await req.json();
     const parsed = editSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400, headers: rlHeaders });
     }
 
     const { date, description, amountIdr, accountId, cashAccountId, transactionType } = parsed.data;
@@ -72,10 +79,10 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({ entry: updated });
+    return NextResponse.json({ entry: updated }, { headers: rlHeaders });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: rlHeaders });
   }
 }
 
@@ -88,6 +95,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const { id } = await params;
 
   const entry = await prisma.journalEntry.findFirst({
@@ -95,7 +108,7 @@ export async function DELETE(
   });
 
   if (!entry) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Not found" }, { status: 404, headers: rlHeaders });
   }
 
   const deleted = await prisma.journalEntry.update({
@@ -115,5 +128,5 @@ export async function DELETE(
     },
   });
 
-  return NextResponse.json({ deleted });
+  return NextResponse.json({ deleted }, { headers: rlHeaders });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 
 const schema = z.object({
   name: z.string().min(1).max(100),
@@ -10,13 +11,20 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const clientIp = getClientIp(req);
+  const rl = await checkRateLimit(`rl:auth:${clientIp}`, 10, 900);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   try {
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid input", details: parsed.error.flatten() },
-        { status: 400 }
+        { status: 400, headers: rlHeaders }
       );
     }
 
@@ -32,7 +40,7 @@ export async function POST(req: NextRequest) {
     if (existing) {
       return NextResponse.json(
         { error: "Email already registered" },
-        { status: 409 }
+        { status: 409, headers: rlHeaders }
       );
     }
     const user = await prisma.user.create({
@@ -40,8 +48,8 @@ export async function POST(req: NextRequest) {
       select: { id: true, email: true, name: true },
     });
 
-    return NextResponse.json({ user }, { status: 201 });
+    return NextResponse.json({ user }, { status: 201, headers: rlHeaders });
   } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: rlHeaders });
   }
 }

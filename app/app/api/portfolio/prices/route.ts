@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getUsdToIdr } from "@/lib/forex";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 // ─── Price fetching helpers ───────────────────────────────────────────────────
 
@@ -85,6 +86,12 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const rl = await checkRateLimit(`rl:prices:${session.user.id}`, 30, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const { holdings } = await req.json() as {
     holdings: { id: string; ticker: string; assetType: string }[];
   };
@@ -130,5 +137,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ prices });
+  return NextResponse.json({ prices }, { headers: rlHeaders });
 }

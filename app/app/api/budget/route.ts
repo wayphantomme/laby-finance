@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { idrToSen } from "@/lib/format";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 const upsertSchema = z.object({
   accountId: z.string().min(1),
@@ -15,6 +16,12 @@ const upsertSchema = z.object({
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
 
   const { searchParams } = new URL(req.url);
   const month = parseInt(searchParams.get("month") ?? String(new Date().getMonth() + 1));
@@ -50,7 +57,7 @@ export async function GET(req: NextRequest) {
     actualByAccount[line.accountId] = (actualByAccount[line.accountId] ?? 0) + amt;
   }
 
-  return NextResponse.json({ budgets, actualByAccount, month, year });
+  return NextResponse.json({ budgets, actualByAccount, month, year }, { headers: rlHeaders });
 }
 
 // POST /api/budget — upsert
@@ -58,9 +65,15 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const body = await req.json();
   const parsed = upsertSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400, headers: rlHeaders });
 
   const { accountId, month, year, amountIdr } = parsed.data;
 
@@ -71,5 +84,5 @@ export async function POST(req: NextRequest) {
     include: { account: true },
   });
 
-  return NextResponse.json({ budget }, { status: 201 });
+  return NextResponse.json({ budget }, { status: 201, headers: rlHeaders });
 }

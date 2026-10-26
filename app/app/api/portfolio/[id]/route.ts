@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { idrToSen } from "@/lib/format";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -26,16 +27,23 @@ const updateSchema = z.object({
 export async function PATCH(req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const { id } = await params;
 
   const holding = await prisma.portfolioHolding.findFirst({
     where: { id, userId: session.user.id, deletedAt: null },
   });
-  if (!holding) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!holding) return NextResponse.json({ error: "Not found" }, { status: 404, headers: rlHeaders });
 
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400, headers: rlHeaders });
 
   const updated = await prisma.portfolioHolding.update({
     where: { id },
@@ -48,39 +56,53 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       ...(parsed.data.notes !== undefined && { notes: parsed.data.notes }),
     },
   });
-  return NextResponse.json({ holding: updated });
+  return NextResponse.json({ holding: updated }, { headers: rlHeaders });
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const { id } = await params;
 
   const holding = await prisma.portfolioHolding.findFirst({
     where: { id, userId: session.user.id, deletedAt: null },
   });
-  if (!holding) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!holding) return NextResponse.json({ error: "Not found" }, { status: 404, headers: rlHeaders });
 
   await prisma.portfolioHolding.update({ where: { id }, data: { deletedAt: new Date() } });
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true }, { headers: rlHeaders });
 }
 
 // POST /api/portfolio/[id]/sell — sell partial or full position
 export async function POST(req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const { id } = await params;
 
   const holding = await prisma.portfolioHolding.findFirst({
     where: { id, userId: session.user.id, deletedAt: null },
   });
-  if (!holding) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!holding) return NextResponse.json({ error: "Not found" }, { status: 404, headers: rlHeaders });
 
   const body = await req.json();
-  if (body.action !== "sell") return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+  if (body.action !== "sell") return NextResponse.json({ error: "Unknown action" }, { status: 400, headers: rlHeaders });
 
   const parsed = sellSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400, headers: rlHeaders });
 
   const { quantitySold, lotsSold, sellPriceIdr, sellDate, cashAccountId } = parsed.data;
   const sellPriceSen = idrToSen(sellPriceIdr);
@@ -138,5 +160,5 @@ export async function POST(req: NextRequest, { params }: Params) {
     }
   });
 
-  return NextResponse.json({ gainLossSen, proceedsSen, costBasisSen });
+  return NextResponse.json({ gainLossSen, proceedsSen, costBasisSen }, { headers: rlHeaders });
 }

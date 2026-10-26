@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { idrToSen } from "@/lib/format";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 const createSchema = z.object({
   assetName: z.string().min(1).max(200),
@@ -20,23 +21,35 @@ export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   const holdings = await prisma.portfolioHolding.findMany({
     where: { userId: session.user.id, deletedAt: null },
     include: { account: { select: { code: true, nameEn: true } } },
     orderBy: { openingDate: "desc" },
   });
 
-  return NextResponse.json({ holdings });
+  return NextResponse.json({ holdings }, { headers: rlHeaders });
 }
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const rl = await checkRateLimit(`rl:api:${session.user.id}`, 200, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   try {
     const body = await req.json();
     const parsed = createSchema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success) return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400, headers: rlHeaders });
 
     const { assetName, ticker, assetType, quantity, lots, avgBuyPriceIdr, openingDate, accountId, notes } = parsed.data;
     const avgBuyPriceSen = idrToSen(avgBuyPriceIdr);
@@ -48,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     // Find opening capital account for journal entry
     const openingCapital = await prisma.coaAccount.findFirst({ where: { code: "3-100" } });
-    if (!openingCapital) return NextResponse.json({ error: "Opening capital account not found" }, { status: 500 });
+    if (!openingCapital) return NextResponse.json({ error: "Opening capital account not found" }, { status: 500, headers: rlHeaders });
 
     // Create holding + opening balance journal entry in transaction
     const [holding] = await prisma.$transaction(async (tx) => {
@@ -90,9 +103,9 @@ export async function POST(req: NextRequest) {
       return [h];
     });
 
-    return NextResponse.json({ holding }, { status: 201 });
+    return NextResponse.json({ holding }, { status: 201, headers: rlHeaders });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: rlHeaders });
   }
 }

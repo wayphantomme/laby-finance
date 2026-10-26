@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -38,12 +39,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = await checkRateLimit(`rl:extract:${session.user.id}`, 10, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400, headers: rlHeaders });
     }
 
     // Validate file type
@@ -51,13 +58,13 @@ export async function POST(req: NextRequest) {
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
         { error: "Invalid file type. Upload a JPEG, PNG, or WebP image." },
-        { status: 400 }
+        { status: 400, headers: rlHeaders }
       );
     }
 
     // Max 10MB
     if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 400 });
+      return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 400, headers: rlHeaders });
     }
 
     const bytes = await file.arrayBuffer();
@@ -137,9 +144,9 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ drafts, rawCount: transactions.length });
+    return NextResponse.json({ drafts, rawCount: transactions.length }, { headers: rlHeaders });
   } catch (e) {
     console.error("Extract error:", e);
-    return NextResponse.json({ error: "Extraction failed" }, { status: 500 });
+    return NextResponse.json({ error: "Extraction failed" }, { status: 500, headers: rlHeaders });
   }
 }

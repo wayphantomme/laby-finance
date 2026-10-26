@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { formatRupiah } from "@/lib/format";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -159,6 +160,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const rl = await checkRateLimit(`rl:chat:${session.user.id}`, 20, 3600);
+  const rlHeaders = rateLimitHeaders(rl);
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rlHeaders });
+  }
+
   try {
     const contentType = req.headers.get("content-type") ?? "";
     let messages: { role: "user" | "assistant"; content: string }[] = [];
@@ -194,7 +201,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!messages.length) {
-      return NextResponse.json({ error: "No messages" }, { status: 400 });
+      return NextResponse.json({ error: "No messages" }, { status: 400, headers: rlHeaders });
     }
 
     const financialContext = await buildFinancialContext(session.user.id);
@@ -365,9 +372,9 @@ ${financialContext}`;
       }
     }
 
-    return NextResponse.json({ content: displayText, drafts, holdings, imageUrl: uploadedImageUrl });
+    return NextResponse.json({ content: displayText, drafts, holdings, imageUrl: uploadedImageUrl }, { headers: rlHeaders });
   } catch (e) {
     console.error("AI chat error:", e);
-    return NextResponse.json({ error: "AI request failed" }, { status: 500 });
+    return NextResponse.json({ error: "AI request failed" }, { status: 500, headers: rlHeaders });
   }
 }
