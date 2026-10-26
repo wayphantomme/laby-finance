@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ArrowLeftRight, BookOpen,
@@ -12,22 +13,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale } from "@/lib/i18n/locale-context";
 
-function LabyMark() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="7" fill="#DC2626" />
-      <text
-        x="16" y="16"
-        dominantBaseline="central"
-        textAnchor="middle"
-        fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif"
-        fontWeight="700"
-        fontSize="19"
-        fill="white"
-      >L</text>
-    </svg>
-  );
-}
+
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
@@ -49,7 +35,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     <>
       <div className="flex h-16 items-center gap-2.5 border-b border-gray-100 dark:border-slate-700 px-5">
         <div className="shrink-0">
-          <LabyMark />
+          <Image src="/laby-finance-logo.png" alt="Laby" width={32} height={32} className="rounded-lg" />
         </div>
         <div className="flex-1">
           <p className="text-base font-semibold text-gray-900 dark:text-slate-100 leading-none">Laby</p>
