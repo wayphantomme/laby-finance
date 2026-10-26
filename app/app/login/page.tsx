@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { PiggyBank } from "lucide-react";
+import { PiggyBank, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/lib/i18n/locale-context";
@@ -30,6 +30,12 @@ export default function LoginPage() {
     }
   }
 
+  function fillDemo() {
+    setEmail("demo@laby.app");
+    setPassword("demo1234");
+    setError("");
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 px-4">
       <div className="w-full max-w-sm">
@@ -40,6 +46,24 @@ export default function LoginPage() {
           <h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">{t.login.title}</h1>
           <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{t.login.subtitle}</p>
         </div>
+
+        {/* Demo account banner */}
+        <button
+          type="button"
+          onClick={fillDemo}
+          className="w-full mb-4 flex items-center gap-3 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-4 py-3 text-left hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors group"
+        >
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-800 group-hover:bg-primary-200 dark:group-hover:bg-primary-700 transition-colors">
+            <Sparkles className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-primary-700 dark:text-primary-300">Coba Demo</p>
+            <p className="text-xs text-primary-500 dark:text-primary-400 mt-0.5">
+              demo@laby.app · demo1234
+            </p>
+          </div>
+          <span className="text-xs text-primary-500 dark:text-primary-400 shrink-0">Klik untuk isi →</span>
+        </button>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
